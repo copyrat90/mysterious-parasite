@@ -1,0 +1,13 @@
+
+# vscode
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# build output 
+build/
+*.elf
+*.gba
+
+# save file for testing
+*.sav
