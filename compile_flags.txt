@@ -3,4 +3,5 @@
 -I../butano/include/
 -I../common/include/
 -Iinclude/
+-Iiso_bn/include
 -Ibuild/
