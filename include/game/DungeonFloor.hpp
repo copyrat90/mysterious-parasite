@@ -1,3 +1,11 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (C) 2022  Guyeon Yu <copyrat90@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ * See LICENSE file for details.
+ */
+
 #pragma once
 
 #include "bn_array.h"
@@ -17,8 +25,8 @@ class DungeonFloor final
 public:
     enum class Type : u8
     {
-        FLOOR = 0,
-        WALL = 1
+        FLOOR,
+        WALL
     };
 
     static constexpr s32 ROWS = consts::DUNGEON_FLOOR_SIZE.height();
@@ -26,7 +34,7 @@ public:
 
 private:
     bn::array<u32, 3> _seeds;
-    bn::array<bn::array<Type, COLUMNS>, ROWS> _walls;
+    bn::array<bn::array<Type, COLUMNS>, ROWS> _board;
 
 public:
     DungeonFloor();
@@ -52,14 +60,6 @@ public:
     {
         return _seeds;
     }
-
-private:
-    /**
-     * @brief Generate random dungeon floor by Room Addition Algorithm.
-     * See https://github.com/AtTheMatinee/dungeon-generation for details.
-     * See `licenses/dungeon-generation.txt` file for the license info.
-     */
-    void _generateByRoomAddition(iso_bn::random& rng);
 };
 
 } // namespace mp::game
