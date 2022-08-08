@@ -173,44 +173,33 @@ MiniMap::TileIndex MiniMap::_calculateTileIndex(s32 x, s32 y, DungeonFloor& dung
 
     TileIndex result = TileIndex::EMPTY;
 
-    // Find nearby walls
     if (cur == Cell::FLOOR)
     {
-        if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::FLOOR)
-            result = TileIndex::EMPTY;
-        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::FLOOR)
-            result = TileIndex::WALL1_TOP;
-        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::FLOOR && right == Cell::FLOOR)
-            result = TileIndex::WALL1_BOTTOM;
-        else if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::WALL && right == Cell::FLOOR)
-            result = TileIndex::WALL1_LEFT;
-        else if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::WALL)
-            result = TileIndex::WALL1_RIGHT;
-        else if (up == Cell::WALL && down == Cell::WALL && left == Cell::FLOOR && right == Cell::FLOOR)
-            result = TileIndex::WALL1_TOP_BOTTOM;
-        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::WALL && right == Cell::FLOOR)
-            result = TileIndex::WALL1_TOP_LEFT;
-        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::WALL)
-            result = TileIndex::WALL1_TOP_RIGHT;
-        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::WALL && right == Cell::FLOOR)
-            result = TileIndex::WALL1_BOTTOM_LEFT;
-        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::FLOOR && right == Cell::WALL)
-            result = TileIndex::WALL1_BOTTOM_RIGHT;
-        else if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::WALL && right == Cell::WALL)
-            result = TileIndex::WALL1_LEFT_RIGHT;
-        else if (up == Cell::WALL && down == Cell::WALL && left == Cell::WALL && right == Cell::FLOOR)
-            result = TileIndex::WALL1_RIGHT_OPEN;
-        else if (up == Cell::WALL && down == Cell::WALL && left == Cell::FLOOR && right == Cell::WALL)
-            result = TileIndex::WALL1_LEFT_OPEN;
-        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::WALL && right == Cell::WALL)
-            result = TileIndex::WALL1_BOTTOM_OPEN;
-        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::WALL && right == Cell::WALL)
-            result = TileIndex::WALL1_TOP_OPEN;
-        else // every side is wall
-        {
-            BN_LOG("Lone floor cell found on (x=", x, ", y=", y, ")");
-            result = TileIndex::WALL1_CLOSED;
-        }
+        u32 wallDirectionFlags = ((u32)(up == Cell::WALL) << 3) + ((u32)(down == Cell::WALL) << 2) +
+                                 ((u32)(left == Cell::WALL) << 1) + ((u32)(right == Cell::WALL) << 0);
+
+        BN_ASSERT(wallDirectionFlags < 16, "wallDirectionFlags(", wallDirectionFlags, ") OOB");
+
+        constexpr TileIndex WALL_TILE_LUT[16] = {
+            EMPTY,
+            WALL1_RIGHT,
+            WALL1_LEFT,
+            WALL1_LEFT_RIGHT,
+            WALL1_BOTTOM,
+            WALL1_BOTTOM_RIGHT,
+            WALL1_BOTTOM_LEFT,
+            WALL1_TOP_OPEN,
+            WALL1_TOP,
+            WALL1_TOP_RIGHT,
+            WALL1_TOP_LEFT,
+            WALL1_BOTTOM_OPEN,
+            WALL1_TOP_BOTTOM,
+            WALL1_LEFT_OPEN,
+            WALL1_RIGHT_OPEN,
+            WALL1_CLOSED,
+        };
+
+        result = WALL_TILE_LUT[wallDirectionFlags];
     }
 
     return result;
