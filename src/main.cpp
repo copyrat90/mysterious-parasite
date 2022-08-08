@@ -3,6 +3,8 @@
 #include "bn_optional.h"
 #include "bn_unique_ptr.h"
 
+#include "iso_bn_random.h"
+
 #include "scene/Game.hpp"
 
 using namespace mp;
@@ -13,6 +15,9 @@ int main()
 
     bn::unique_ptr<scene::IScene> scene;
     bn::optional<scene::SceneType> nextScene;
+
+    // TODO: 세이브로부터 seed 불러오기
+    iso_bn::random rng;
 
     // TEST: Game scene
     nextScene = scene::SceneType::GAME;
@@ -32,7 +37,7 @@ int main()
                 {
                     using SceneType = scene::SceneType;
                 case SceneType::GAME:
-                    scene.reset(new scene::Game);
+                    scene.reset(new scene::Game(rng));
                     break;
                 default:
                     BN_ERROR("Unknown nextScene: ", (s32)*nextScene);

@@ -1,6 +1,10 @@
 #include "game/MiniMap.hpp"
 
 #include "bn_affine_bg_map_cell_info.h"
+#include "bn_assert.h"
+#include "bn_log.h"
+
+#include "game/DungeonFloor.hpp"
 
 #include "bn_affine_bg_items_bg_minimap.h"
 #include "bn_sprite_items_spr_minimap_player_cursor.h"
@@ -10,24 +14,24 @@ namespace mp::game
 
 namespace
 {
-
 constexpr s32 PLAYER_CURSOR_FLICKER_FRAMES = 8;
+}
 
-enum TileIndex : u8
+enum MiniMap::TileIndex : u8
 {
-    EMPTY = 0,
+    EMPTY,
     EMPTY_DITHERED,
     NPC,
     ITEM,
     ENEMY,
     BOSS,
     SPECIAL_TILE,
-    STAIRS,
+    ELEVATOR,
     TRAP,
     YELLOW_TRIANGE_TILE,
 
     // Clear type
-    WALL1_TOP = 10,
+    WALL1_TOP,
     WALL1_RIGHT,
     WALL1_BOTTOM,
     WALL1_LEFT,
@@ -37,9 +41,14 @@ enum TileIndex : u8
     WALL1_BOTTOM_LEFT,
     WALL1_TOP_BOTTOM,
     WALL1_LEFT_RIGHT,
+    WALL1_TOP_OPEN,
+    WALL1_RIGHT_OPEN,
+    WALL1_BOTTOM_OPEN,
+    WALL1_LEFT_OPEN,
+    WALL1_CLOSED,
 
     // Shaded type, yet to be explored.
-    WALL2_TOP = 20,
+    WALL2_TOP,
     WALL2_RIGHT,
     WALL2_BOTTOM,
     WALL2_LEFT,
@@ -49,9 +58,14 @@ enum TileIndex : u8
     WALL2_BOTTOM_LEFT,
     WALL2_TOP_BOTTOM,
     WALL2_LEFT_RIGHT,
+    WALL2_TOP_OPEN,
+    WALL2_RIGHT_OPEN,
+    WALL2_BOTTOM_OPEN,
+    WALL2_LEFT_OPEN,
+    WALL2_CLOSED,
 
     // Dithered background type
-    WALL3_TOP = 30,
+    WALL3_TOP,
     WALL3_RIGHT,
     WALL3_BOTTOM,
     WALL3_LEFT,
@@ -61,9 +75,12 @@ enum TileIndex : u8
     WALL3_BOTTOM_LEFT,
     WALL3_TOP_BOTTOM,
     WALL3_LEFT_RIGHT,
+    WALL3_TOP_OPEN,
+    WALL3_RIGHT_OPEN,
+    WALL3_BOTTOM_OPEN,
+    WALL3_LEFT_OPEN,
+    WALL3_CLOSED,
 };
-
-} // namespace
 
 MiniMap::MiniMap()
     : _cells{}, _mapItem(_cells[0], bn::size(MiniMap::COLUMNS, MiniMap::ROWS)),
@@ -81,6 +98,31 @@ void MiniMap::update()
     {
         _playerCursorFlickerAction.update();
     }
+
+    if (_cellsReloadRequired)
+    {
+        _cellsReloadRequired = false;
+        _bgMap.reload_cells_ref();
+    }
+}
+
+void MiniMap::redrawAll(DungeonFloor& dungeonFloor)
+{
+    _cellsReloadRequired = true;
+    for (s32 y = 0; y < ROWS; ++y)
+        for (s32 x = 0; x < COLUMNS; ++x)
+            redrawCell(x, y, dungeonFloor);
+}
+
+void MiniMap::redrawCell(s32 x, s32 y, DungeonFloor& dungeonFloor)
+{
+    _cellsReloadRequired = true;
+
+    bn::affine_bg_map_cell& cell = _cells[_mapItem.cell_index(x, y)];
+    bn::affine_bg_map_cell_info cellInfo(cell);
+
+    cellInfo.set_tile_index(_calculateTileIndex(x, y, dungeonFloor));
+    cell = cellInfo.cell();
 }
 
 bool MiniMap::isVisible()
@@ -102,6 +144,68 @@ void MiniMap::_initGraphics()
     _bg.set_wrapping_enabled(false);
 
     // TODO: 미니맵 _bg를 현재 플레이어 커서가 중앙이 되도록 위치 초기화
+}
+
+MiniMap::TileIndex MiniMap::_calculateTileIndex(s32 x, s32 y, DungeonFloor& dungeonFloor)
+{
+    BN_ASSERT(0 <= x && x < COLUMNS, "Index x(", x, ") OOB");
+    BN_ASSERT(0 <= y && y < ROWS, "Index y(", y, ") OOB");
+
+    using Cell = DungeonFloor::Type;
+
+    auto cur = dungeonFloor.getTile(x, y);
+    auto up = (y - 1 >= 0) ? dungeonFloor.getTile(x, y - 1) : Cell::WALL;
+    auto down = (y + 1 < ROWS) ? dungeonFloor.getTile(x, y + 1) : Cell::WALL;
+    auto left = (x - 1 >= 0) ? dungeonFloor.getTile(x - 1, y) : Cell::WALL;
+    auto right = (x + 1 < COLUMNS) ? dungeonFloor.getTile(x + 1, y) : Cell::WALL;
+
+    // TODO: Player의 시야 고려하여 dithering 여부 결정
+    // TODO: 해당 cell 위에 있는 Actor/Item도 고려하여 그릴 타일 결정
+    // TODO: 특수 능력으로 본 지형은 회색 타일로 그림
+
+    TileIndex result = TileIndex::EMPTY;
+
+    // Find nearby walls
+    if (cur == Cell::FLOOR)
+    {
+        if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::FLOOR)
+            result = TileIndex::EMPTY;
+        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::FLOOR)
+            result = TileIndex::WALL1_TOP;
+        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::FLOOR && right == Cell::FLOOR)
+            result = TileIndex::WALL1_BOTTOM;
+        else if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::WALL && right == Cell::FLOOR)
+            result = TileIndex::WALL1_LEFT;
+        else if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::WALL)
+            result = TileIndex::WALL1_RIGHT;
+        else if (up == Cell::WALL && down == Cell::WALL && left == Cell::FLOOR && right == Cell::FLOOR)
+            result = TileIndex::WALL1_TOP_BOTTOM;
+        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::WALL && right == Cell::FLOOR)
+            result = TileIndex::WALL1_TOP_LEFT;
+        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::FLOOR && right == Cell::WALL)
+            result = TileIndex::WALL1_TOP_RIGHT;
+        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::WALL && right == Cell::FLOOR)
+            result = TileIndex::WALL1_BOTTOM_LEFT;
+        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::FLOOR && right == Cell::WALL)
+            result = TileIndex::WALL1_BOTTOM_RIGHT;
+        else if (up == Cell::FLOOR && down == Cell::FLOOR && left == Cell::WALL && right == Cell::WALL)
+            result = TileIndex::WALL1_LEFT_RIGHT;
+        else if (up == Cell::WALL && down == Cell::WALL && left == Cell::WALL && right == Cell::FLOOR)
+            result = TileIndex::WALL1_RIGHT_OPEN;
+        else if (up == Cell::WALL && down == Cell::WALL && left == Cell::FLOOR && right == Cell::WALL)
+            result = TileIndex::WALL1_LEFT_OPEN;
+        else if (up == Cell::WALL && down == Cell::FLOOR && left == Cell::WALL && right == Cell::WALL)
+            result = TileIndex::WALL1_BOTTOM_OPEN;
+        else if (up == Cell::FLOOR && down == Cell::WALL && left == Cell::WALL && right == Cell::WALL)
+            result = TileIndex::WALL1_TOP_OPEN;
+        else // every side is wall
+        {
+            BN_LOG("Lone floor cell found on (x=", x, ", y=", y, ")");
+            result = TileIndex::WALL1_CLOSED;
+        }
+    }
+
+    return result;
 }
 
 } // namespace mp::game

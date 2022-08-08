@@ -5,15 +5,19 @@
 namespace mp::scene
 {
 
-Game::Game()
+Game::Game(iso_bn::random& rng) : _rng(rng)
 {
+    _miniMap.setVisible(true);
 }
 
 bn::optional<SceneType> Game::update()
 {
     // test
     if (bn::keypad::select_pressed())
-        _miniMap.setVisible(!_miniMap.isVisible());
+    {
+        _dungeonFloor.generate(_rng);
+        _miniMap.redrawAll(_dungeonFloor);
+    }
     // test
 
     _miniMap.update();
