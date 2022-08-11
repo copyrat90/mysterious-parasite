@@ -23,18 +23,24 @@ namespace mp::game
 class DungeonFloor final
 {
 public:
+    /**
+     * @brief Dungeon floor type.
+     * Number >= 200 is reserved for the temp flags on the generator.
+     */
     enum class Type : u8
     {
-        FLOOR,
-        WALL
+        WALL = 0,
+        FLOOR = 1,
     };
 
     static constexpr s32 ROWS = consts::DUNGEON_FLOOR_SIZE.height();
     static constexpr s32 COLUMNS = consts::DUNGEON_FLOOR_SIZE.width();
 
+    using Board = bn::array<bn::array<Type, COLUMNS>, ROWS>;
+
 private:
     bn::array<u32, 3> _seeds;
-    bn::array<bn::array<Type, COLUMNS>, ROWS> _board;
+    Board _board;
 
 public:
     DungeonFloor();

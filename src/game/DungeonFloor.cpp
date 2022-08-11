@@ -41,7 +41,7 @@ void DungeonFloor::generate(iso_bn::random& rng)
     _seeds = {rng.seed_x(), rng.seed_y(), rng.seed_z()};
 
     DungeonGenerator gen;
-    gen.generateByRoomAddition(_board, rng);
+    gen.generate(_board, rng);
 }
 
 void DungeonFloor::generate(u32 seed_x, u32 seed_y, u32 seed_z)

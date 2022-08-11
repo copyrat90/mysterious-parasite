@@ -11,3 +11,6 @@ build/
 
 # save file for testing
 *.sav
+
+# mGBA screenshot
+/mysterious-parasite-*.png

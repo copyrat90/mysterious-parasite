@@ -11,6 +11,7 @@
 #include "bn_affine_bg_map_cell_info.h"
 #include "bn_assert.h"
 #include "bn_log.h"
+#include "bn_profiler.h"
 
 #include "game/DungeonFloor.hpp"
 
@@ -116,10 +117,14 @@ void MiniMap::update()
 
 void MiniMap::redrawAll(DungeonFloor& dungeonFloor)
 {
+    BN_PROFILER_START("minimap_redraw_all");
+
     _cellsReloadRequired = true;
     for (s32 y = 0; y < ROWS; ++y)
         for (s32 x = 0; x < COLUMNS; ++x)
             redrawCell(x, y, dungeonFloor);
+
+    BN_PROFILER_STOP();
 }
 
 void MiniMap::redrawCell(s32 x, s32 y, DungeonFloor& dungeonFloor)

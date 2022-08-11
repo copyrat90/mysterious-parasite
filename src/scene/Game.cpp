@@ -9,6 +9,7 @@
 #include "scene/Game.hpp"
 
 #include "bn_keypad.h"
+#include "bn_profiler.h"
 
 namespace mp::scene
 {
@@ -25,6 +26,10 @@ bn::optional<SceneType> Game::update()
     {
         _dungeonFloor.generate(_rng);
         _miniMap.redrawAll(_dungeonFloor);
+    }
+    if (bn::keypad::start_pressed())
+    {
+        bn::profiler::show();
     }
     // test
 

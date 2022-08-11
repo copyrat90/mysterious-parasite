@@ -15,7 +15,7 @@
 namespace mp::consts
 {
 
-inline constexpr bn::size DUNGEON_FLOOR_SIZE = {128, 128};
+inline constexpr bn::size DUNGEON_FLOOR_SIZE = {64, 64};
 inline constexpr s32 DUNGEON_FLOOR_CELLS_COUNT = DUNGEON_FLOOR_SIZE.width() * DUNGEON_FLOOR_SIZE.height();
 
 } // namespace mp::consts
