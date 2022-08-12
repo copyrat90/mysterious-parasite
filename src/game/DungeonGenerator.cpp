@@ -8,11 +8,12 @@
 
 #include "game/DungeonGenerator.hpp"
 
+#include "bn_array.h"
 #include "bn_assert.h"
+#include "bn_log.h"
 #include "bn_memory.h"
 #include "bn_point.h"
 #include "bn_profiler.h"
-#include "bn_vector.h"
 
 #include "iso_bn_random.h"
 
@@ -165,16 +166,13 @@ static bool _removeSmallBlobs(DungeonGenerator::Room& room, DungeonGenerator::Ro
 
     // remove blobs other than the biggest blob
     for (const auto& blobPos : blobStartPositions)
-    {
-        if (blobPos == biggestBlobStartPos)
-            continue;
-        _dfsCellular(blobPos.x(), blobPos.y(), true, room, visited);
-    }
+        if (blobPos != biggestBlobStartPos)
+            _dfsCellular(blobPos.x(), blobPos.y(), true, room, visited);
 
     return biggestBlobSize >= Gen::CELLULAR_ROOM_MIN_CELLS_COUNT;
 }
 
-auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) -> DungeonGenerator::Room
+auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) -> Room
 {
     for (s32 trial = 0; trial < CELLULAR_ROOM_FAIL_FALLBACK_COUNT; ++trial)
     {
@@ -225,12 +223,51 @@ auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) -> DungeonGenera
     }
 
     // If failed too many times, fallback to square room.
+    BN_LOG("cellular room gen failed ", CELLULAR_ROOM_FAIL_FALLBACK_COUNT, " times, fallback to square room gen");
     return _createSquareRoom(rng);
 }
 
-auto DungeonGenerator::_createSquareRoom(iso_bn::random& rng) -> DungeonGenerator::Room
+auto DungeonGenerator::_createSquareRoom(iso_bn::random& rng) -> Room
 {
-    BN_ERROR("Not implemented yet");
+    const s32 width = rng.get_int(SQUARE_ROOM_MIN_LEN, SQUARE_ROOM_MAX_LEN + 1);
+    const s32 height = rng.get_int(SQUARE_ROOM_MIN_LEN, SQUARE_ROOM_MAX_LEN + 1);
+
+    return Room(height, bn::vector<FloorType, ROOM_MAX_LEN>(width, FloorType::FLOOR));
+}
+
+static void _crossRoomPutSquare(s32 width, s32 height, DungeonGenerator::Room& room)
+{
+    using Gen = DungeonGenerator;
+
+    for (s32 y = room.size() / 2 - height / 2; y < room.size() / 2 + height / 2; ++y)
+        for (s32 x = room[y].size() / 2 - width / 2; x < room[y].size() / 2 + width / 2; ++x)
+            room[y][x] = Gen::FloorType::FLOOR;
+}
+
+auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) -> Room
+{
+    static_assert(CROSS_ROOM_MIN_LEN % 2 == 0);
+    static_assert(CROSS_ROOM_MAX_LEN % 2 == 0);
+
+    bn::array<s32, 4> nums;
+    for (auto& num : nums)
+    {
+        num = rng.get_int(CROSS_ROOM_MIN_LEN / 2, CROSS_ROOM_MAX_LEN / 2 + 1);
+        num *= 2;
+    }
+
+    bn::sort(nums.begin(), nums.end());
+
+    const s32 width1 = nums[0];
+    const s32 height2 = nums[1];
+    const s32 width2 = nums[2];
+    const s32 height1 = nums[3];
+
+    Room room(bn::max(height1, height2), bn::vector<FloorType, ROOM_MAX_LEN>(bn::max(width1, width2), FloorType::WALL));
+    _crossRoomPutSquare(width1, height1, room);
+    _crossRoomPutSquare(width2, height2, room);
+
+    return room;
 }
 
 } // namespace mp::game

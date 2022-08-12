@@ -33,10 +33,10 @@ public:
 
     static constexpr s32 CELLULAR_ROOM_MIN_CELLS_COUNT = 16;
     static constexpr s32 CELLULAR_ROOM_MAX_LEN = 16;
-    static constexpr s32 SQUARE_ROOM_MIN_LEN = 16;
-    static constexpr s32 SQUARE_ROOM_MAX_LEN = 16;
-    static constexpr s32 CROSS_ROOM_MIN_LEN = 16;
-    static constexpr s32 CROSS_ROOM_MAX_LEN = 16;
+    static constexpr s32 SQUARE_ROOM_MIN_LEN = 6;
+    static constexpr s32 SQUARE_ROOM_MAX_LEN = 12;
+    static constexpr s32 CROSS_ROOM_MIN_LEN = 4;
+    static constexpr s32 CROSS_ROOM_MAX_LEN = 12;
 
     static constexpr s32 ROOM_MAX_LEN =
         bn::max(bn::max(CELLULAR_ROOM_MAX_LEN, SQUARE_ROOM_MAX_LEN), CROSS_ROOM_MAX_LEN);
@@ -66,8 +66,8 @@ private:
     bool _placeRoom(Room& room);
 
     Room _createCellularRoom(iso_bn::random& rng);
-
     Room _createSquareRoom(iso_bn::random& rng);
+    Room _createCrossRoom(iso_bn::random& rng);
 };
 
 } // namespace mp::game
