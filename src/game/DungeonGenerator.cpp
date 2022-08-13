@@ -78,12 +78,22 @@ static void _addAdjCountToNeighbors(const DungeonGenerator::Room& prev, DungeonG
                 cur[cy][cx] = (DungeonGenerator::FloorType)((u8)cur[cy][cx] + 1);
 }
 
+static constexpr s32 _upperTwoPowOf(s32 num)
+{
+    BN_ASSERT(0 <= num && num <= (1 << 30));
+
+    s32 result = 1;
+    while (result < num)
+        result <<= 1;
+    return result;
+}
+
 /**
- * @brief DFS used in Cellular automata room generation.
+ * @brief BFS used in Cellular automata room generation.
  * @param removeMode if enabled, fill in the passed small blob with walls.
  * @return size of the blob.
  */
-static s32 _dfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& room, DungeonGenerator::Room& visited)
+static s32 _bfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& room, DungeonGenerator::Room& visited)
 {
     using Gen = DungeonGenerator;
     constexpr bn::point UDLR[4] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
@@ -91,15 +101,15 @@ static s32 _dfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& r
     if (removeMode)
         room[y][x] = Gen::FloorType::WALL;
 
-    bn::vector<bn::point, Gen::ROOM_MAX_LEN * Gen::ROOM_MAX_LEN> stack;
+    bn::deque<bn::point, _upperTwoPowOf(2 * Gen::ROOM_MAX_LEN + 4)> queue;
     visited[y][x] = (Gen::FloorType) true;
-    stack.push_back({x, y});
+    queue.push_back({x, y});
     s32 blobSize = 1;
 
-    while (!stack.empty())
+    while (!queue.empty())
     {
-        auto cur = stack.back();
-        stack.pop_back();
+        auto cur = queue.front();
+        queue.pop_front();
 
         for (auto direction : UDLR)
         {
@@ -117,7 +127,7 @@ static s32 _dfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& r
 
             ++blobSize;
             visited[candidate.y()][candidate.x()] = (Gen::FloorType) true;
-            stack.push_back(candidate);
+            queue.push_back(candidate);
 
             // Remove the floor cell by filling it with wall, when `removeMode` is enabled.
             if (removeMode)
@@ -152,7 +162,7 @@ static bool _removeSmallBlobs(DungeonGenerator::Room& room, DungeonGenerator::Ro
             {
                 blobStartPositions.push_back({x, y});
 
-                s32 blobSize = _dfsCellular(x, y, false, room, visited);
+                s32 blobSize = _bfsCellular(x, y, false, room, visited);
                 if (blobSize > biggestBlobSize)
                 {
                     biggestBlobSize = blobSize;
@@ -168,7 +178,7 @@ static bool _removeSmallBlobs(DungeonGenerator::Room& room, DungeonGenerator::Ro
     // remove blobs other than the biggest blob
     for (const auto& blobPos : blobStartPositions)
         if (blobPos != biggestBlobStartPos)
-            _dfsCellular(blobPos.x(), blobPos.y(), true, room, visited);
+            _bfsCellular(blobPos.x(), blobPos.y(), true, room, visited);
 
     return biggestBlobSize >= Gen::CELLULAR_ROOM_MIN_CELLS_COUNT;
 }
@@ -283,6 +293,10 @@ auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) const -> Room
 
 s32 DungeonGenerator::_shortestPathLen(const bn::point& p1, const bn::point& p2, const Board& board) const
 {
+    BN_ASSERT(board[p1.y()][p1.x()] == FloorType::FLOOR, "p1(", p1.x(), ", ", p1.y(), ") is not a floor");
+    BN_ASSERT(board[p2.y()][p2.x()] == FloorType::FLOOR, "p2(", p2.x(), ", ", p2.y(), ") is not a floor");
+
+    bn::deque<bn::pair<s32, bn::point>, _upperTwoPowOf(2 * bn::min(ROWS, COLUMNS) + 4)> queue;
 }
 
 } // namespace mp::game
