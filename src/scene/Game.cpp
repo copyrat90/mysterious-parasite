@@ -21,7 +21,7 @@ Game::Game(iso_bn::random& rng) : _rng(rng)
 
 bn::optional<SceneType> Game::update()
 {
-    // test
+#ifdef MP_DEBUG
     if (_testCounter++ == 100)
     {
         bn::profiler::show();
@@ -31,7 +31,7 @@ bn::optional<SceneType> Game::update()
         _dungeonFloor.generate(_rng);
         _miniMap.redrawAll(_dungeonFloor);
     }
-    // test
+#endif
 
     _miniMap.update();
 

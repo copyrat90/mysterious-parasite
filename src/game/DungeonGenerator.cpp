@@ -10,6 +10,7 @@
 
 #include "bn_array.h"
 #include "bn_assert.h"
+#include "bn_bitset.h"
 #include "bn_deque.h"
 #include "bn_log.h"
 #include "bn_memory.h"
@@ -23,8 +24,13 @@ namespace mp::game
 
 namespace
 {
+
 constexpr s32 SMOOTHING_COUNT = 5;
 constexpr s32 CELLULAR_ROOM_FAIL_FALLBACK_COUNT = 3;
+
+constexpr bn::point UDLR[4] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+constexpr bn::point DIAGONAL[4] = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
+
 } // namespace
 
 void DungeonGenerator::generate(Board& board, iso_bn::random& rng) const
@@ -33,12 +39,12 @@ void DungeonGenerator::generate(Board& board, iso_bn::random& rng) const
 
     _clearWithWalls(board);
 
-    // test
+#ifdef MP_DEBUG
     Room room = _createCellularRoom(rng);
     for (s32 y = 0; y < room.size(); ++y)
         for (s32 x = 0; x < room[0].size(); ++x)
             board[ROWS / 2 - room.size() / 2 + y][COLUMNS / 2 - room[0].size() + x] = room[y][x];
-    // test
+#endif
 
     BN_PROFILER_STOP();
 }
@@ -96,7 +102,6 @@ static constexpr s32 _upperTwoPowOf(s32 num)
 static s32 _bfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& room, DungeonGenerator::Room& visited)
 {
     using Gen = DungeonGenerator;
-    constexpr bn::point UDLR[4] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
     if (removeMode)
         room[y][x] = Gen::FloorType::WALL;
@@ -113,7 +118,7 @@ static s32 _bfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& r
 
         for (auto direction : UDLR)
         {
-            bn::point candidate{cur.x() + direction.x(), cur.y() + direction.y()};
+            const bn::point candidate = cur + direction;
             // check OOB
             if (candidate.x() < 0 || candidate.y() < 0 || candidate.x() >= room[0].size() ||
                 candidate.y() >= room.size())
@@ -121,8 +126,8 @@ static s32 _bfsCellular(s32 x, s32 y, bool removeMode, DungeonGenerator::Room& r
             // check already visited
             if ((bool)visited[candidate.y()][candidate.x()])
                 continue;
-            // check not floor
-            if (room[candidate.y()][candidate.x()] != Gen::FloorType::FLOOR)
+            // check wall
+            if (room[candidate.y()][candidate.x()] == Gen::FloorType::WALL)
                 continue;
 
             ++blobSize;
@@ -270,19 +275,19 @@ auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) const -> Room
     static_assert(CROSS_ROOM_MIN_LEN % 2 == 0);
     static_assert(CROSS_ROOM_MAX_LEN % 2 == 0);
 
-    bn::array<s32, 4> nums;
-    for (auto& num : nums)
+    bn::array<s32, 4> dimensions;
+    for (auto& d : dimensions)
     {
-        num = rng.get_int(CROSS_ROOM_MIN_LEN / 2, CROSS_ROOM_MAX_LEN / 2 + 1);
-        num *= 2;
+        d = rng.get_int(CROSS_ROOM_MIN_LEN / 2, CROSS_ROOM_MAX_LEN / 2 + 1);
+        d *= 2;
     }
 
-    bn::sort(nums.begin(), nums.end());
+    bn::sort(dimensions.begin(), dimensions.end());
 
-    const s32 width1 = nums[0];
-    const s32 height2 = nums[1];
-    const s32 width2 = nums[2];
-    const s32 height1 = nums[3];
+    const s32 width1 = dimensions[0];
+    const s32 height2 = dimensions[1];
+    const s32 width2 = dimensions[2];
+    const s32 height1 = dimensions[3];
 
     Room room(bn::max(height1, height2), bn::vector<FloorType, ROOM_MAX_LEN>(bn::max(width1, width2), FloorType::WALL));
     _crossRoomPutSquare(width1, height1, room);
@@ -291,12 +296,94 @@ auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) const -> Room
     return room;
 }
 
+static s32 _boardCellIndex(const bn::point& p)
+{
+    BN_ASSERT(0 <= p.y() && p.y() < DungeonGenerator::ROWS);
+    BN_ASSERT(0 <= p.x() && p.x() < DungeonGenerator::COLUMNS);
+
+    return p.y() * DungeonGenerator::COLUMNS + p.x();
+}
+
+bool _shortestPathBfsNextCellCheck(bool isDiagonal, const bn::point& candidate, const bn::point& cur,
+                                   const bn::bitset<DungeonGenerator::COLUMNS * DungeonGenerator::ROWS>& visited,
+                                   const DungeonGenerator::Board& board)
+{
+    using Gen = DungeonGenerator;
+    // check OOB
+    if (candidate.x() < 0 || candidate.y() < 0 || candidate.x() >= Gen::COLUMNS || candidate.y() >= Gen::ROWS)
+        return false;
+    // check already visited
+    if (visited[_boardCellIndex(candidate)])
+        return false;
+    // check wall
+    if (board[candidate.y()][candidate.x()] == Gen::FloorType::WALL)
+        return false;
+    // Diagonal movement only: check diagonal adjacent wall
+    if (isDiagonal)
+    {
+        if (board[candidate.y()][cur.x()] == Gen::FloorType::WALL ||
+            board[cur.y()][candidate.x()] == Gen::FloorType::WALL)
+            return false;
+    }
+
+    return true;
+}
+
 s32 DungeonGenerator::_shortestPathLen(const bn::point& p1, const bn::point& p2, const Board& board) const
 {
     BN_ASSERT(board[p1.y()][p1.x()] == FloorType::FLOOR, "p1(", p1.x(), ", ", p1.y(), ") is not a floor");
     BN_ASSERT(board[p2.y()][p2.x()] == FloorType::FLOOR, "p2(", p2.x(), ", ", p2.y(), ") is not a floor");
 
-    bn::deque<bn::pair<s32, bn::point>, _upperTwoPowOf(2 * bn::min(ROWS, COLUMNS) + 4)> queue;
+    if (p1 == p2)
+        return 0;
+
+    struct QElem
+    {
+        s32 len = 0;
+        bn::point pos;
+    };
+
+    bn::deque<QElem, _upperTwoPowOf(2 * bn::min(ROWS, COLUMNS) + 4)> queue;
+    bn::bitset<COLUMNS * ROWS> visited;
+
+    visited[_boardCellIndex(p1)] = true;
+    queue.push_back({0, p1});
+
+    while (!queue.empty())
+    {
+        auto cur = queue.front();
+        queue.pop_front();
+
+        for (const auto& direction : UDLR)
+        {
+            const bn::point candidate = cur.pos + direction;
+            if (!_shortestPathBfsNextCellCheck(false, candidate, cur.pos, visited, board))
+                continue;
+
+            // If new pos is `p2`, found a shortest path.
+            if (candidate == p2)
+                return cur.len + 1;
+
+            visited[_boardCellIndex(candidate)] = true;
+            queue.push_back({cur.len + 1, candidate});
+        }
+        for (const auto& direction : DIAGONAL)
+        {
+            const bn::point candidate = cur.pos + direction;
+            if (!_shortestPathBfsNextCellCheck(true, candidate, cur.pos, visited, board))
+                continue;
+
+            // If new pos is `p2`, found a shortest path.
+            if (candidate == p2)
+                return cur.len + 1;
+
+            visited[_boardCellIndex(candidate)] = true;
+            queue.push_back({cur.len + 1, candidate});
+        }
+    }
+
+    // cannot find any path.
+    return -1;
 }
 
 } // namespace mp::game

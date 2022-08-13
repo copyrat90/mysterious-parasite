@@ -70,6 +70,12 @@ private:
     Room _createSquareRoom(iso_bn::random& rng) const;
     Room _createCrossRoom(iso_bn::random& rng) const;
 
+    /**
+     * @brief Get the shortest path length of 2 points on the board.
+     * Valid diagonal movements are also considered.
+     *
+     * @return s32 length of shortest path if exists, `-1` otherwise.
+     */
     s32 _shortestPathLen(const bn::point& p1, const bn::point& p2, const Board& board) const;
 };
 
