@@ -175,17 +175,20 @@ static bool _removeSmallBlobs(DungeonGenerator::Room& room, DungeonGenerator::Ro
 
 auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) const -> Room
 {
+    Room result(CELLULAR_ROOM_MAX_LEN, bn::vector<FloorType, ROOM_MAX_LEN>(CELLULAR_ROOM_MAX_LEN));
+    Room temp(CELLULAR_ROOM_MAX_LEN, bn::vector<FloorType, ROOM_MAX_LEN>(CELLULAR_ROOM_MAX_LEN));
+
+    bool success = false;
     for (s32 trial = 0; trial < CELLULAR_ROOM_FAIL_FALLBACK_COUNT; ++trial)
     {
+        Room* prev = (SMOOTHING_COUNT % 2 == 0) ? &result : &temp;
+        Room* cur = (SMOOTHING_COUNT % 2 == 0) ? &temp : &result;
+
         // Initialize room with random walls (CELLULAR_WALL_RATIO %)
-        Room room1(CELLULAR_ROOM_MAX_LEN);
         for (s32 y = 0; y < CELLULAR_ROOM_MAX_LEN; ++y)
             for (s32 x = 0; x < CELLULAR_ROOM_MAX_LEN; ++x)
-                room1[y].push_back(rng.get_fixed(1) <= CELLULAR_WALL_RATIO ? FloorType::WALL : FloorType::FLOOR);
+                (*prev)[y][x] = rng.get_fixed(1) <= CELLULAR_WALL_RATIO ? FloorType::WALL : FloorType::FLOOR;
 
-        Room room2(CELLULAR_ROOM_MAX_LEN, bn::vector<FloorType, ROOM_MAX_LEN>(CELLULAR_ROOM_MAX_LEN, (FloorType)0));
-
-        Room *prev = &room1, *cur = &room2;
         // Running 5 rounds of smoothing.
         // smoothing: adjacent floor < 4 becomes a wall, adj floor >= 6 becomes a floor.
         for (s32 i = 0; i < SMOOTHING_COUNT; ++i)
@@ -220,12 +223,19 @@ auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) const -> Room
 
         // Find the biggest connected blob, and remove the other small blobs.
         if (_removeSmallBlobs(*prev, *cur))
-            return *prev;
+        {
+            success = true;
+            break;
+        }
     }
 
-    // If failed too many times, fallback to square room.
-    BN_LOG("cellular room gen failed ", CELLULAR_ROOM_FAIL_FALLBACK_COUNT, " times, fallback to square room gen");
-    return _createSquareRoom(rng);
+    if (!success)
+    {
+        // If failed too many times, fallback to square room.
+        BN_LOG("cellular room gen failed ", CELLULAR_ROOM_FAIL_FALLBACK_COUNT, " times, fallback to square room gen");
+        result = _createSquareRoom(rng);
+    }
+    return result;
 }
 
 auto DungeonGenerator::_createSquareRoom(iso_bn::random& rng) const -> Room
