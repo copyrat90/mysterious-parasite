@@ -22,14 +22,14 @@ Game::Game(iso_bn::random& rng) : _rng(rng)
 bn::optional<SceneType> Game::update()
 {
     // test
-    if (bn::keypad::select_pressed())
+    if (_testCounter++ == 100)
+    {
+        bn::profiler::show();
+    }
+    else
     {
         _dungeonFloor.generate(_rng);
         _miniMap.redrawAll(_dungeonFloor);
-    }
-    if (bn::keypad::start_pressed())
-    {
-        bn::profiler::show();
     }
     // test
 

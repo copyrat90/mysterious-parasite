@@ -10,6 +10,7 @@
 
 #include "bn_array.h"
 #include "bn_assert.h"
+#include "bn_deque.h"
 #include "bn_log.h"
 #include "bn_memory.h"
 #include "bn_point.h"
@@ -26,7 +27,7 @@ constexpr s32 SMOOTHING_COUNT = 5;
 constexpr s32 CELLULAR_ROOM_FAIL_FALLBACK_COUNT = 3;
 } // namespace
 
-void DungeonGenerator::generate(Board& board, iso_bn::random& rng)
+void DungeonGenerator::generate(Board& board, iso_bn::random& rng) const
 {
     BN_PROFILER_START("dungeon_gen");
 
@@ -42,7 +43,7 @@ void DungeonGenerator::generate(Board& board, iso_bn::random& rng)
     BN_PROFILER_STOP();
 }
 
-void DungeonGenerator::_clearWithWalls(Board& board)
+void DungeonGenerator::_clearWithWalls(Board& board) const
 {
     if constexpr ((u8)FloorType::WALL == 0)
         bn::memory::clear(ROWS * COLUMNS, board[0][0]);
@@ -50,7 +51,7 @@ void DungeonGenerator::_clearWithWalls(Board& board)
         bn::memory::set_bytes((u8)FloorType::WALL, ROWS * COLUMNS, &board[0][0]);
 }
 
-bool DungeonGenerator::_placeRoom(Room& room)
+bool DungeonGenerator::_placeRoom(Room& room) const
 {
 }
 
@@ -172,7 +173,7 @@ static bool _removeSmallBlobs(DungeonGenerator::Room& room, DungeonGenerator::Ro
     return biggestBlobSize >= Gen::CELLULAR_ROOM_MIN_CELLS_COUNT;
 }
 
-auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) -> Room
+auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) const -> Room
 {
     for (s32 trial = 0; trial < CELLULAR_ROOM_FAIL_FALLBACK_COUNT; ++trial)
     {
@@ -227,7 +228,7 @@ auto DungeonGenerator::_createCellularRoom(iso_bn::random& rng) -> Room
     return _createSquareRoom(rng);
 }
 
-auto DungeonGenerator::_createSquareRoom(iso_bn::random& rng) -> Room
+auto DungeonGenerator::_createSquareRoom(iso_bn::random& rng) const -> Room
 {
     const s32 width = rng.get_int(SQUARE_ROOM_MIN_LEN, SQUARE_ROOM_MAX_LEN + 1);
     const s32 height = rng.get_int(SQUARE_ROOM_MIN_LEN, SQUARE_ROOM_MAX_LEN + 1);
@@ -244,7 +245,7 @@ static void _crossRoomPutSquare(s32 width, s32 height, DungeonGenerator::Room& r
             room[y][x] = Gen::FloorType::FLOOR;
 }
 
-auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) -> Room
+auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) const -> Room
 {
     static_assert(CROSS_ROOM_MIN_LEN % 2 == 0);
     static_assert(CROSS_ROOM_MAX_LEN % 2 == 0);
@@ -268,6 +269,10 @@ auto DungeonGenerator::_createCrossRoom(iso_bn::random& rng) -> Room
     _crossRoomPutSquare(width2, height2, room);
 
     return room;
+}
+
+s32 DungeonGenerator::_shortestPathLen(const bn::point& p1, const bn::point& p2, const Board& board) const
+{
 }
 
 } // namespace mp::game

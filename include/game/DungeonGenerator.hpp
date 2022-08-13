@@ -10,6 +10,7 @@
 
 #include "bn_algorithm.h"
 #include "bn_fixed.h"
+#include "bn_point.h"
 #include "bn_vector.h"
 
 #include "game/DungeonFloor.hpp"
@@ -33,7 +34,7 @@ public:
 
     static constexpr s32 CELLULAR_ROOM_MIN_CELLS_COUNT = 16;
     static constexpr s32 CELLULAR_ROOM_MAX_LEN = 16;
-    static constexpr s32 SQUARE_ROOM_MIN_LEN = 6;
+    static constexpr s32 SQUARE_ROOM_MIN_LEN = 4;
     static constexpr s32 SQUARE_ROOM_MAX_LEN = 12;
     static constexpr s32 CROSS_ROOM_MIN_LEN = 4;
     static constexpr s32 CROSS_ROOM_MAX_LEN = 12;
@@ -55,19 +56,21 @@ public:
      * @brief Generate random dungeon floor.
      * Inspired by algorithm described in https://www.rockpapershotgun.com/how-do-roguelikes-generate-levels
      */
-    void generate(Board& board, iso_bn::random& rng);
+    void generate(Board& board, iso_bn::random& rng) const;
 
 private:
     /**
      * @brief Fill whole board with walls.
      */
-    void _clearWithWalls(Board& board);
+    void _clearWithWalls(Board& board) const;
 
-    bool _placeRoom(Room& room);
+    bool _placeRoom(Room& room) const;
 
-    Room _createCellularRoom(iso_bn::random& rng);
-    Room _createSquareRoom(iso_bn::random& rng);
-    Room _createCrossRoom(iso_bn::random& rng);
+    Room _createCellularRoom(iso_bn::random& rng) const;
+    Room _createSquareRoom(iso_bn::random& rng) const;
+    Room _createCrossRoom(iso_bn::random& rng) const;
+
+    s32 _shortestPathLen(const bn::point& p1, const bn::point& p2, const Board& board) const;
 };
 
 } // namespace mp::game

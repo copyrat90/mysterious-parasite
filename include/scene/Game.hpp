@@ -33,6 +33,9 @@ private:
     game::DungeonFloor _dungeonFloor;
 
     iso_bn::random& _rng;
+
+private:
+    s32 _testCounter = 0;
 };
 
 } // namespace mp::scene
