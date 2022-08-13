@@ -5,3 +5,6 @@
 -Iinclude/
 -Iiso_bn/include
 -Ibuild/
+
+-DMP_DEBUG
+-DBN_CFG_PROFILER_ENABLED=true
