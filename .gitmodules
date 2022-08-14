@@ -1,3 +1,7 @@
 [submodule "iso_bn"]
 	path = iso_bn
 	url = https://github.com/copyrat90/iso_butano.git
+[submodule "fonts"]
+	shallow = true
+	path = fonts
+	url = https://github.com/copyrat90/gba-kor-fonts.git

@@ -4,6 +4,9 @@
 !.vscode/launch.json
 !.vscode/tasks.json
 
+# python venv
+*venv/
+
 # build output 
 build/
 *.elf

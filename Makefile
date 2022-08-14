@@ -32,7 +32,7 @@ PYTHON      :=  python
 SOURCES     :=  src src/scene src/cmd src/game src/game/actor iso_bn/src
 INCLUDES    :=  include iso_bn/include
 DATA        :=
-GRAPHICS    :=  graphics
+GRAPHICS    :=  graphics $(BUILD)/fonts
 AUDIO       :=  audio
 DMGAUDIO    :=  dmg_audio
 ROMTITLE    :=  MYSTERY PARA
@@ -48,7 +48,11 @@ USERLDFLAGS :=
 USERLIBDIRS :=  
 USERLIBS    :=  
 USERBUILD   :=  
-EXTTOOL     :=  
+
+### gba-free-fonts font generator ###
+FONTS       :=  fonts/fonts/galmuri9
+TEXTS       :=  include/texts.hpp
+EXTTOOL     :=  $(PYTHON) fonts/tools/butano/butano_fonts_tool.py --build=$(BUILD) --fonts="$(FONTS)" --texts="$(TEXTS)"
 
 #---------------------------------------------------------------------------------------------------------------------
 # Export absolute butano path:

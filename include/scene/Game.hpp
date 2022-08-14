@@ -10,8 +10,18 @@
 
 #include "scene/IScene.hpp"
 
+#ifdef MP_DEBUG
+#include "bn_sprite_ptr.h"
+#include "bn_vector.h"
+#endif
+
 #include "game/DungeonFloor.hpp"
 #include "game/MiniMap.hpp"
+
+namespace bn
+{
+class sprite_text_generator;
+}
 
 namespace iso_bn
 {
@@ -24,7 +34,7 @@ namespace mp::scene
 class Game final : public IScene
 {
 public:
-    Game(iso_bn::random& rng);
+    Game(iso_bn::random& rng, bn::sprite_text_generator& textGen);
 
     [[nodiscard]] bn::optional<SceneType> update() final;
 
@@ -34,8 +44,11 @@ private:
 
     iso_bn::random& _rng;
 
+#ifdef MP_DEBUG
 private:
     s32 _testCounter = 0;
+    bn::vector<bn::sprite_ptr, 16> _testTexts;
+#endif
 };
 
 } // namespace mp::scene

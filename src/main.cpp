@@ -9,11 +9,14 @@
 #include "bn_assert.h"
 #include "bn_core.h"
 #include "bn_optional.h"
+#include "bn_sprite_text_generator.h"
 #include "bn_unique_ptr.h"
 
 #include "iso_bn_random.h"
 
 #include "scene/Game.hpp"
+
+#include "galmuri9_sprite_font.h"
 
 using namespace mp;
 
@@ -23,6 +26,8 @@ int main()
 
     bn::unique_ptr<scene::IScene> scene;
     bn::optional<scene::SceneType> nextScene;
+
+    bn::sprite_text_generator textGen(galmuri9_sprite_font);
 
     // TODO: 세이브로부터 seed 불러오기
     iso_bn::random rng;
@@ -45,7 +50,7 @@ int main()
                 {
                     using SceneType = scene::SceneType;
                 case SceneType::GAME:
-                    scene.reset(new scene::Game(rng));
+                    scene.reset(new scene::Game(rng, textGen));
                     break;
                 default:
                     BN_ERROR("Unknown nextScene: ", (s32)*nextScene);
