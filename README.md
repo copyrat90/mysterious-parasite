@@ -16,6 +16,11 @@ This program uses [Butano](https://github.com/GValiente/butano), which is licens
 
 First, make sure the [Butano](https://github.com/GValiente/butano) is set up correctly, with its own dependencies.
 
+This repo contains [`iso_bn` submodule](https://github.com/copyrat90/iso_butano), so you need to clone this repo recursively.
+```bash
+git clone --recursive https://github.com/copyrat90/mysterious-parasite.git
+```
+
 Next, change [the path in `Makefile`](Makefile#L30) which points to the directory where `butano.mak` is located,
 from `LIBBUTANO := ../butano` to your own path.
 

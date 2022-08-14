@@ -1,0 +1,3 @@
+[submodule "iso_bn"]
+	path = iso_bn
+	url = https://github.com/copyrat90/iso_butano.git
