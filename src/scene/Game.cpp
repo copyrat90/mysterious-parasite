@@ -9,6 +9,7 @@
 #include "scene/Game.hpp"
 
 #include "bn_keypad.h"
+#include "bn_log.h"
 #include "bn_profiler.h"
 #include "bn_sprite_text_generator.h"
 
@@ -39,6 +40,7 @@ bn::optional<SceneType> Game::update()
     {
         _dungeonFloor.generate(_rng);
         _miniMap.redrawAll(_dungeonFloor);
+        BN_LOG("Generated dungeon #", _testCounter);
     }
 #endif
 
