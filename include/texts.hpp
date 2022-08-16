@@ -9,6 +9,8 @@
 /*
  * Every in-game texts should reside here,
  * so that `gba-free-font` generator can see the texts, and generate the necessary glyphs only.
+ *
+ * Only exception is the Latin charset from '!'(U+0021) to '~'(U+007E).
  */
 
 #pragma once

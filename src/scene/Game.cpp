@@ -21,12 +21,6 @@ namespace mp::scene
 Game::Game(iso_bn::random& rng, bn::sprite_text_generator& textGen) : _rng(rng)
 {
     _miniMap.setVisible(true);
-
-#ifdef MP_DEBUG
-    textGen.set_alignment(bn::sprite_text_generator::alignment_type::CENTER);
-    textGen.generate(0, -70, texts::KOR_TEST_STR, _testTexts);
-    textGen.generate(0, -55, texts::ENG_TEST_STR, _testTexts);
-#endif
 }
 
 bn::optional<SceneType> Game::update()

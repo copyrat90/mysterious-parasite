@@ -14,6 +14,7 @@
 
 #include "iso_bn_random.h"
 
+#include "debug/DebugView.hpp"
 #include "scene/Game.hpp"
 
 #include "galmuri9_sprite_font.h"
@@ -34,6 +35,10 @@ int main()
 
     // TEST: Game scene
     nextScene = scene::SceneType::GAME;
+
+#ifdef MP_DEBUG
+    debug::DebugView debugView(textGen);
+#endif
 
     while (true)
     {
@@ -57,7 +62,9 @@ int main()
                 }
             }
         }
-
+#ifdef MP_DEBUG
+        debugView.update();
+#endif
         bn::core::update();
     }
 }
