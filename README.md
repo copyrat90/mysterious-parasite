@@ -16,7 +16,7 @@ This program uses [Butano](https://github.com/GValiente/butano), which is licens
 
 First, make sure the [Butano](https://github.com/GValiente/butano) is set up correctly, with its own dependencies.
 
-This repo contains my custom [`iso_butano`](https://github.com/copyrat90/iso_butano) and [`gba-free-fonts/kor-font`](https://github.com/copyrat90/gba-free-fonts/tree/kor-font) **submodules**.\
+This repo contains my custom [`iso_butano`](https://github.com/copyrat90/iso_butano) and [`gba-kor-fonts`](https://github.com/copyrat90/gba-kor-fonts) **submodules**.\
 As some history of these submodules are huge, you'll want a **shallow submodule update**.
 ```bash
 git clone https://github.com/copyrat90/mysterious-parasite.git
