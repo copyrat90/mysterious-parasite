@@ -14,6 +14,7 @@
 #include "bn_fixed.h"
 #include "bn_vector.h"
 
+#include "game/BoardPos.hpp"
 #include "game/DungeonFloor.hpp"
 
 namespace iso_bn
@@ -32,18 +33,6 @@ public:
 
     static constexpr s32 ROWS = DungeonFloor::ROWS;
     static constexpr s32 COLUMNS = DungeonFloor::COLUMNS;
-
-    struct BoardPos
-    {
-        s8 x, y;
-        BoardPos operator+(const BoardPos& other) const;
-        BoardPos operator-(const BoardPos& other) const;
-        BoardPos operator-() const;
-        BoardPos operator*(s8 multiply) const;
-        BoardPos& operator+=(const BoardPos& other);
-        BoardPos& operator-=(const BoardPos& other);
-        bool operator==(const BoardPos& other) const;
-    };
 
     static constexpr s32 CELLULAR_ROOM_MIN_CELLS_COUNT = 16;
     static constexpr s32 CELLULAR_ROOM_MAX_LEN = 16;

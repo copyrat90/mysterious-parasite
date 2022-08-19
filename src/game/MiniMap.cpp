@@ -10,10 +10,12 @@
 
 #include "bn_affine_bg_map_cell_info.h"
 #include "bn_assert.h"
+#include "bn_fixed_point.h"
 #include "bn_log.h"
 #include "bn_profiler.h"
 
 #include "game/DungeonFloor.hpp"
+#include "game/mob/Monster.hpp"
 
 #include "bn_affine_bg_items_bg_minimap.h"
 #include "bn_sprite_items_spr_minimap_player_cursor.h"
@@ -24,7 +26,8 @@ namespace mp::game
 namespace
 {
 constexpr s32 PLAYER_CURSOR_FLICKER_FRAMES = 8;
-}
+constexpr bn::fixed_point PLAYER_CURSOR_POS = {-40, 0};
+} // namespace
 
 enum MiniMap::TileIndex : u8
 {
@@ -95,7 +98,7 @@ MiniMap::MiniMap()
     : _cells{}, _mapItem(_cells[0], bn::size(MiniMap::COLUMNS, MiniMap::ROWS)),
       _bgItem(bn::affine_bg_items::bg_minimap.tiles_item(), bn::affine_bg_items::bg_minimap.palette_item(), _mapItem),
       _bg(_bgItem.create_bg(0, 0)), _bgMap(_bg.map()),
-      _playerCursor(bn::sprite_items::spr_minimap_player_cursor.create_sprite(0, 0)),
+      _playerCursor(bn::sprite_items::spr_minimap_player_cursor.create_sprite(PLAYER_CURSOR_POS)),
       _playerCursorFlickerAction(_playerCursor, PLAYER_CURSOR_FLICKER_FRAMES)
 {
     _initGraphics();
@@ -115,7 +118,15 @@ void MiniMap::update()
     }
 }
 
-void MiniMap::redrawAll(DungeonFloor& dungeonFloor)
+void MiniMap::updateBgPos(const mob::Monster& player)
+{
+    const auto& playerPos = player.getBoardPos();
+
+    _bg.set_position(PLAYER_CURSOR_POS.x() + COLUMNS * 4 / 2 - 2 - 4 * playerPos.x,
+                     PLAYER_CURSOR_POS.y() + ROWS * 4 / 2 - 2 - 4 * playerPos.y);
+}
+
+void MiniMap::redrawAll(const DungeonFloor& dungeonFloor)
 {
     BN_PROFILER_START("minimap_redraw_all");
 
@@ -127,7 +138,7 @@ void MiniMap::redrawAll(DungeonFloor& dungeonFloor)
     BN_PROFILER_STOP();
 }
 
-void MiniMap::redrawCell(s32 x, s32 y, DungeonFloor& dungeonFloor)
+void MiniMap::redrawCell(s32 x, s32 y, const DungeonFloor& dungeonFloor)
 {
     _cellsReloadRequired = true;
 
@@ -138,7 +149,7 @@ void MiniMap::redrawCell(s32 x, s32 y, DungeonFloor& dungeonFloor)
     cell = cellInfo.cell();
 }
 
-bool MiniMap::isVisible()
+bool MiniMap::isVisible() const
 {
     return _bg.visible();
 }
@@ -155,11 +166,9 @@ void MiniMap::_initGraphics()
 
     _bg.set_scale(0.5);
     _bg.set_wrapping_enabled(false);
-
-    // TODO: 미니맵 _bg를 현재 플레이어 커서가 중앙이 되도록 위치 초기화
 }
 
-MiniMap::TileIndex MiniMap::_calculateTileIndex(s32 x, s32 y, DungeonFloor& dungeonFloor)
+MiniMap::TileIndex MiniMap::_calculateTileIndex(s32 x, s32 y, const DungeonFloor& dungeonFloor) const
 {
     BN_ASSERT(0 <= x && x < COLUMNS, "Index x(", x, ") OOB");
     BN_ASSERT(0 <= y && y < ROWS, "Index y(", y, ") OOB");

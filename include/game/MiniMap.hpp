@@ -21,6 +21,11 @@
 namespace mp::game
 {
 
+namespace mob
+{
+class Monster;
+}
+
 class DungeonFloor;
 
 class MiniMap final
@@ -48,17 +53,18 @@ public:
     MiniMap();
 
     void update();
+    void updateBgPos(const mob::Monster& player);
 
-    void redrawAll(DungeonFloor& dungeonFloor);
-    void redrawCell(s32 x, s32 y, DungeonFloor& dungeonFloor);
+    void redrawAll(const DungeonFloor& dungeonFloor);
+    void redrawCell(s32 x, s32 y, const DungeonFloor& dungeonFloor);
 
-    bool isVisible();
+    bool isVisible() const;
     void setVisible(bool isVisible);
 
 private:
     void _initGraphics();
 
-    TileIndex _calculateTileIndex(s32 x, s32 y, DungeonFloor& dungeonFloor);
+    TileIndex _calculateTileIndex(s32 x, s32 y, const DungeonFloor& dungeonFloor) const;
 };
 
 } // namespace mp::game

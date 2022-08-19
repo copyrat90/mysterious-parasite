@@ -35,8 +35,8 @@ constexpr s32 PLACE_ROOM_RETRY_COUNT = 5;
 constexpr s32 REGEN_ROOM_RETRY_COUNT = 5;
 constexpr s32 HALLWAY_MAX_LEN = 7;
 
-constexpr Gen::BoardPos UDLR[4] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
-constexpr Gen::BoardPos DIAGONAL[4] = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
+constexpr BoardPos UDLR[4] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+constexpr BoardPos DIAGONAL[4] = {{-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
 
 } // namespace
 
@@ -72,46 +72,7 @@ static void _debugLogBoard(const Gen::Board& board)
 #endif
 }
 
-auto Gen::BoardPos::operator+(const BoardPos& other) const -> BoardPos
-{
-    return BoardPos{(s8)(x + other.x), (s8)(y + other.y)};
-}
-
-auto Gen::BoardPos::operator-(const BoardPos& other) const -> BoardPos
-{
-    return BoardPos{(s8)(x - other.x), (s8)(y - other.y)};
-}
-
-auto Gen::BoardPos::operator-() const -> BoardPos
-{
-    return BoardPos{(s8)-x, (s8)-y};
-}
-
-auto Gen::BoardPos::operator*(s8 multiply) const -> BoardPos
-{
-    return BoardPos{(s8)(x * multiply), (s8)(y * multiply)};
-}
-
-auto Gen::BoardPos::operator+=(const BoardPos& other) -> BoardPos&
-{
-    x += other.x;
-    y += other.y;
-    return *this;
-}
-
-auto Gen::BoardPos::operator-=(const BoardPos& other) -> BoardPos&
-{
-    x -= other.x;
-    y -= other.y;
-    return *this;
-}
-
-bool Gen::BoardPos::operator==(const BoardPos& other) const
-{
-    return x == other.x && y == other.y;
-}
-
-static bool _isBoardOOB(const Gen::BoardPos& cellPos)
+static bool _isBoardOOB(const BoardPos& cellPos)
 {
     return cellPos.y < 0 || cellPos.x < 0 || cellPos.y >= Gen::ROWS || cellPos.x >= Gen::COLUMNS;
 }
@@ -120,7 +81,7 @@ bool Gen::Room::isBoardOOB() const
 {
     // top-left or bottom-right check OOB check
     return _isBoardOOB(boardOffset) ||
-           _isBoardOOB(boardOffset + Gen::BoardPos{(s8)(floors[0].size() - 1), (s8)(floors.size() - 1)});
+           _isBoardOOB(boardOffset + BoardPos{(s8)(floors[0].size() - 1), (s8)(floors.size() - 1)});
 }
 
 bool Gen::Room::isBoardFloorOverlap(const Board& board) const
@@ -173,7 +134,7 @@ void Gen::_clearWithWalls(Board& board) const
         bn::memory::set_bytes((u8)FloorType::WALL, ROWS * COLUMNS, &board[0][0]);
 }
 
-static s32 _boardCellIndex(const Gen::BoardPos& p)
+static s32 _boardCellIndex(const BoardPos& p)
 {
     BN_ASSERT(0 <= p.y && p.y < Gen::ROWS);
     BN_ASSERT(0 <= p.x && p.x < Gen::COLUMNS);
@@ -219,15 +180,15 @@ auto Gen::_getHallwayDirection(const BoardPos& wallNearFloor, const Board& board
     return (nearFloorCount == 1) ? result : BoardPos{0, 0};
 }
 
-static s32 _udlrDirToIdx(const Gen::BoardPos& direction)
+static s32 _udlrDirToIdx(const BoardPos& direction)
 {
-    if (direction == Gen::BoardPos{0, -1})
+    if (direction == BoardPos{0, -1})
         return 0;
-    if (direction == Gen::BoardPos{0, 1})
+    if (direction == BoardPos{0, 1})
         return 1;
-    if (direction == Gen::BoardPos{-1, 0})
+    if (direction == BoardPos{-1, 0})
         return 2;
-    if (direction == Gen::BoardPos{1, 0})
+    if (direction == BoardPos{1, 0})
         return 3;
     BN_ERROR("Invalid direction {x=", direction.x, ", y=", direction.y, "}");
 }
@@ -356,7 +317,7 @@ static s32 _bfsCellular(s8 x, s8 y, bool removeMode, Gen::Room& room, Gen::Room&
     if (removeMode)
         room.floors[y][x] = Gen::FloorType::WALL;
 
-    bn::deque<Gen::BoardPos, _upperTwoPowOf(2 * Gen::ROOM_MAX_LEN + 4)> queue;
+    bn::deque<BoardPos, _upperTwoPowOf(2 * Gen::ROOM_MAX_LEN + 4)> queue;
     visited.floors[y][x] = (Gen::FloorType) true;
     queue.push_back({x, y});
     s32 blobSize = 1;
@@ -368,7 +329,7 @@ static s32 _bfsCellular(s8 x, s8 y, bool removeMode, Gen::Room& room, Gen::Room&
 
         for (auto direction : UDLR)
         {
-            const Gen::BoardPos candidate = cur + direction;
+            const BoardPos candidate = cur + direction;
             // check OOB
             if (candidate.x < 0 || candidate.y < 0 || candidate.x >= room.floors[0].size() ||
                 candidate.y >= room.floors.size())
@@ -404,9 +365,9 @@ static bool _removeSmallBlobs(Gen::Room& room, Gen::Room& visited)
         for (auto& elem : row)
             elem = (Gen::FloorType) false;
 
-    bn::vector<Gen::BoardPos, Gen::ROOM_MAX_LEN / 2 * Gen::ROOM_MAX_LEN> blobStartPositions;
+    bn::vector<BoardPos, Gen::ROOM_MAX_LEN / 2 * Gen::ROOM_MAX_LEN> blobStartPositions;
     s32 biggestBlobSize = -1;
-    Gen::BoardPos biggestBlobStartPos = {-1, -1};
+    BoardPos biggestBlobStartPos = {-1, -1};
 
     // find the biggest blob
     for (s8 y = 0; y < room.floors.size(); ++y)
@@ -438,7 +399,7 @@ static bool _removeSmallBlobs(Gen::Room& room, Gen::Room& visited)
 
 static void _makeDoorsWithBoundary(Gen::Room& room, s32 xMin, s32 xMax, s32 yMin, s32 yMax, iso_bn::random& rng)
 {
-    bn::vector<Gen::BoardPos, Gen::ROOM_MAX_LEN> boundaryFloors;
+    bn::vector<BoardPos, Gen::ROOM_MAX_LEN> boundaryFloors;
 
     // top boundary
     for (s32 x = xMin; x <= xMax; ++x)
@@ -612,7 +573,7 @@ auto Gen::_createCrossRoom(iso_bn::random& rng) const -> Room
     return room;
 }
 
-bool _shortestPathBfsNextCellCheck(bool isDiagonal, const Gen::BoardPos& candidate, const Gen::BoardPos& cur,
+bool _shortestPathBfsNextCellCheck(bool isDiagonal, const BoardPos& candidate, const BoardPos& cur,
                                    const bn::bitset<Gen::COLUMNS * Gen::ROWS>& visited, const Gen::Board& board)
 {
     // check OOB

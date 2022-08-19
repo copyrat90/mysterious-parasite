@@ -27,12 +27,17 @@ DungeonFloor::DungeonFloor() : _seeds({0, 0, 0})
 {
 }
 
-DungeonFloor::Type DungeonFloor::getTile(s32 x, s32 y)
+auto DungeonFloor::getTile(s32 x, s32 y) const -> Type
 {
     BN_ASSERT(0 <= x && x < FLOOR_WIDTH, "Tile OOB for x(", x, ")");
     BN_ASSERT(0 <= y && y < FLOOR_HEIGHT, "Tile OOB for y(", y, ")");
 
     return _board[y][x];
+}
+
+auto DungeonFloor::getTile(const BoardPos& pos) const -> Type
+{
+    return getTile(pos.x, pos.y);
 }
 
 void DungeonFloor::generate(iso_bn::random& rng)

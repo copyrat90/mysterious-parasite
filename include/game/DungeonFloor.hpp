@@ -20,6 +20,8 @@ class random;
 namespace mp::game
 {
 
+class BoardPos;
+
 class DungeonFloor final
 {
 public:
@@ -45,7 +47,8 @@ private:
 public:
     DungeonFloor();
 
-    Type getTile(s32 x, s32 y);
+    Type getTile(s32 x, s32 y) const;
+    Type getTile(const BoardPos& pos) const;
 
     /**
      * @brief Generate random dungeon floor.
