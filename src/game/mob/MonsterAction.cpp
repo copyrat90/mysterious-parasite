@@ -1,3 +1,11 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (C) 2022  Guyeon Yu <copyrat90@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ * See LICENSE file for details.
+ */
+
 #include "game/mob/MonsterAction.hpp"
 
 #include "bn_assert.h"
@@ -5,14 +13,14 @@
 namespace mp::game::mob
 {
 
-MonsterAction::MonsterAction(Direction direction, Type type, s32 actionIdx)
+MonsterAction::MonsterAction(Direction9 direction, Type type, s32 actionIdx)
     : _direction(direction), _type(type), _actionIdx(actionIdx)
 {
     BN_ASSERT(type == Type::ABILITY || type == Type::ITEM, "actionIndex(", actionIdx, ") provided with type(",
               (s32)type, ")");
 }
 
-MonsterAction::MonsterAction(Direction direction, Type type) : _direction(direction), _type(type)
+MonsterAction::MonsterAction(Direction9 direction, Type type) : _direction(direction), _type(type)
 {
     BN_ASSERT(type != Type::ABILITY && type != Type::ITEM, "actionIndex not provided with type(", (s32)type, ")");
 }
@@ -28,34 +36,14 @@ s32 MonsterAction::getActionIdx() const
     return _actionIdx;
 }
 
-auto MonsterAction::getDirection() const -> Direction
+auto MonsterAction::getDirection() const -> Direction9
 {
     return _direction;
 }
 
 BoardPos MonsterAction::getDirectionPos() const
 {
-    switch (_direction)
-    {
-    case Direction::UP:
-        return {0, -1};
-    case Direction::UP_RIGHT:
-        return {1, -1};
-    case Direction::RIGHT:
-        return {1, 0};
-    case Direction::DOWN_RIGHT:
-        return {1, 1};
-    case Direction::DOWN:
-        return {0, 1};
-    case Direction::DOWN_LEFT:
-        return {-1, 1};
-    case Direction::LEFT:
-        return {-1, 0};
-    case Direction::UP_LEFT:
-        return {-1, -1};
-    }
-    BN_ERROR("Invalid _direction(", (s32)_direction, ")");
-    return {0, 0};
+    return convertDir9ToPos(_direction);
 }
 
 } // namespace mp::game::mob

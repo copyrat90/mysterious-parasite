@@ -15,7 +15,7 @@ namespace mp::game
 
 struct BoardPos
 {
-    s8 x, y;
+    s8 x = 0, y = 0;
 
     BoardPos operator+(const BoardPos& other) const;
     BoardPos operator-(const BoardPos& other) const;

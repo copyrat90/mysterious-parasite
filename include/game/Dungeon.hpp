@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "bn_vector.h"
+#include "bn_forward_list.h"
 
 #include "constants.hpp"
 #include "game/DungeonBg.hpp"
@@ -32,6 +32,25 @@ public:
 
     [[nodiscard]] auto update() -> bn::optional<scene::SceneType>;
 
+    bool isTurnOngoing() const;
+
+private:
+    void _handleInput();
+
+    void _startTurnOngoing();
+    /**
+     * @brief Update the turn progress delay countdown.
+     * @return whether the input should be received now.
+     */
+    bool _updateTurnOngoing();
+
+    bool _canMoveTo(const mob::Monster&, const BoardPos& destination) const;
+
+#ifdef MP_DEBUG
+private:
+    void _testMapGen();
+#endif
+
 private:
     iso_bn::random& _rng;
 
@@ -40,8 +59,10 @@ private:
     MiniMap _miniMap;
 
     mob::Monster _player;
-    bn::vector<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;
-    bn::vector<item::Item, consts::DUNGEON_ITEM_MAX_COUNT> _items;
+    bn::forward_list<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;
+    bn::forward_list<item::Item, consts::DUNGEON_ITEM_MAX_COUNT> _items;
+
+    s32 _turnProgressDelayCounter = 0;
 };
 
 } // namespace mp::game

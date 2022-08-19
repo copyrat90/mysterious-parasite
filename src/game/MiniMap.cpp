@@ -166,6 +166,7 @@ void MiniMap::_initGraphics()
 
     _bg.set_scale(0.5);
     _bg.set_wrapping_enabled(false);
+    _bg.set_priority(consts::MINI_MAP_BG_PRIORITY);
 }
 
 MiniMap::TileIndex MiniMap::_calculateTileIndex(s32 x, s32 y, const DungeonFloor& dungeonFloor) const

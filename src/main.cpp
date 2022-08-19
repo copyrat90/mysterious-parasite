@@ -7,6 +7,7 @@
  */
 
 #include "bn_assert.h"
+#include "bn_bg_palettes.h"
 #include "bn_core.h"
 #include "bn_optional.h"
 #include "bn_sprite_text_generator.h"
@@ -24,6 +25,8 @@ using namespace mp;
 int main()
 {
     bn::core::init();
+    // TEST
+    bn::bg_palettes::set_transparent_color(bn::color(16, 16, 16));
 
     bn::unique_ptr<scene::IScene> scene;
     bn::optional<scene::SceneType> nextScene;

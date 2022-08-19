@@ -8,11 +8,13 @@
 
 #pragma once
 
+#include "bn_sprite_animate_actions.h"
 #include "bn_sprite_ptr.h"
 #include "bn_vector.h"
 
 #include "constants.hpp"
 #include "game/BoardPos.hpp"
+#include "game/Direction9.hpp"
 #include "game/item/Item.hpp"
 #include "typedefs.hpp"
 
@@ -53,11 +55,25 @@ public:
 private:
     void _act(MonsterAction& action);
 
+    /**
+     * @brief Check if the same animation is ongoing, and if not, start the idle animation.
+     */
+    void _startIdleAnimation(Direction9);
+
+    /**
+     * @brief Check if the same animation is ongoing, and if not, start the walk animation.
+     */
+    void _startWalkAnimation(Direction9);
+
+    void _initGraphics();
+
 private:
     const MonsterInfo& _info;
 
     bn::sprite_ptr _sprite;
+    bn::sprite_animate_action<consts::MOB_ANIM_MAX_KEYFRAMES> _animation;
     BoardPos _pos;
+    Direction9 _direction = Direction9::DOWN;
     bn::vector<item::Item, consts::MOB_ITEM_MAX_COUNT> _items;
 };
 

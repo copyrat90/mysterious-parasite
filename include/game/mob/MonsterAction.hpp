@@ -9,6 +9,7 @@
 #pragma once
 
 #include "game/BoardPos.hpp"
+#include "game/Direction9.hpp"
 #include "typedefs.hpp"
 
 namespace mp::game::mob
@@ -17,21 +18,12 @@ namespace mp::game::mob
 class MonsterAction
 {
 public:
-    enum class Direction
-    {
-        UP,
-        UP_RIGHT,
-        RIGHT,
-        DOWN_RIGHT,
-        DOWN,
-        DOWN_LEFT,
-        LEFT,
-        UP_LEFT
-    };
-
     enum class Type
     {
-        DO_NOTHING,
+        // do not take a turn
+        CHANGE_DIRECTION = 0,
+        // take a turn
+        DO_NOTHING = 100,
         MOVE,
         ATTACK,
         ABILITY,
@@ -42,20 +34,20 @@ public:
     /**
      * @brief Constructor for `Type::ABILITY` and `Type::ITEM`, as they need `actionIdx`.
      */
-    MonsterAction(Direction, Type, s32 actionIdx);
+    MonsterAction(Direction9, Type, s32 actionIdx);
 
     /**
      * @brief Constructor for `Type` which doesn't need `actionIdx`.
      */
-    MonsterAction(Direction, Type);
+    MonsterAction(Direction9, Type);
 
     Type getType() const;
     s32 getActionIdx() const;
-    Direction getDirection() const;
+    Direction9 getDirection() const;
     BoardPos getDirectionPos() const;
 
 private:
-    Direction _direction;
+    Direction9 _direction;
     Type _type;
     // ability or item index
     s32 _actionIdx;
