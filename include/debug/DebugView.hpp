@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "bn_fixed.h"
 #include "bn_sprite_ptr.h"
 #include "bn_vector.h"
 
@@ -31,15 +32,19 @@ public:
     void update();
 
 private:
-    bool isVisible() const;
-    void setVisible(bool isVisible);
+    bool _isVisible() const;
+    void _setVisible(bool isVisible);
+
+    void _resetCounter();
 
 private:
     bn::sprite_text_generator& _textGen;
     bn::vector<bn::sprite_ptr, 2> _headingSprites;
     bn::vector<bn::sprite_ptr, 16> _usageSprites;
 
-    s32 _updateCounter = 0;
+    s32 _updateCounter;
+    bn::fixed _lastCpuSum;
+    bn::fixed _lastVblankSum;
 };
 
 #endif

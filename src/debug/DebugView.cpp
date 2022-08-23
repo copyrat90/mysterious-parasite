@@ -30,24 +30,27 @@ constexpr s32 IWRAM_BYTES = 32'768, EWRAM_BYTES = 262'144;
 
 DebugView::DebugView(bn::sprite_text_generator& textGen) : _textGen(textGen)
 {
+    _resetCounter();
 }
 
 void DebugView::update()
 {
     if ((bn::keypad::start_held() && bn::keypad::select_pressed()) ||
         (bn::keypad::select_held() && bn::keypad::start_pressed()))
-        setVisible(!isVisible());
+        _setVisible(!_isVisible());
 
-    if (!isVisible())
+    if (!_isVisible())
         return;
+
+    _lastCpuSum += bn::core::last_cpu_usage();
+    _lastVblankSum += bn::core::last_vblank_usage();
 
     if (--_updateCounter <= 0)
     {
-        _updateCounter = UPDATE_FRAMES;
         _usageSprites.clear();
 
-        const s32 cpu = (bn::core::last_cpu_usage() * 100).round_integer();
-        const s32 vblank = (bn::core::last_vblank_usage() * 100).round_integer();
+        const s32 cpu = (_lastCpuSum / UPDATE_FRAMES * 100).round_integer();
+        const s32 vblank = (_lastVblankSum / UPDATE_FRAMES * 100).round_integer();
         const s32 iwUse =
             (bn::fixed(bn::memory::used_static_iwram() + bn::memory::used_stack_iwram()) / IWRAM_BYTES * 100)
                 .round_integer();
@@ -61,15 +64,17 @@ void DebugView::update()
         _textGen.generate(X_POS, -50, bn::format<10>("vbl {}%", vblank), _usageSprites);
         _textGen.generate(X_POS, -40, bn::format<17>("  iw {}% {}", iwUse, iwFree), _usageSprites);
         _textGen.generate(X_POS, -30, bn::format<18>("  ew {}% {}", ewUse, ewFree), _usageSprites);
+
+        _resetCounter();
     }
 }
 
-bool DebugView::isVisible() const
+bool DebugView::_isVisible() const
 {
     return !_headingSprites.empty();
 }
 
-void DebugView::setVisible(bool isVisible)
+void DebugView::_setVisible(bool isVisible)
 {
     if (isVisible)
     {
@@ -78,10 +83,17 @@ void DebugView::setVisible(bool isVisible)
     }
     else
     {
-        _updateCounter = 0;
+        _resetCounter();
         _usageSprites.clear();
         _headingSprites.clear();
     }
+}
+
+void DebugView::_resetCounter()
+{
+    _updateCounter = UPDATE_FRAMES;
+    _lastCpuSum = 0;
+    _lastVblankSum = 0;
 }
 
 #endif
