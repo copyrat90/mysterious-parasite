@@ -15,6 +15,7 @@
 #include "typedefs.hpp"
 
 #include "bn_sprite_items_spr_lemmas.h"
+#include "bn_sprite_items_spr_missing_no.h"
 
 namespace mp::game::mob
 {
@@ -25,6 +26,7 @@ namespace
 constexpr s32 TOTAL_SPECIES = (s32)MonsterSpecies::TOTAL_SPECIES;
 
 constexpr MonsterInfo _monsterInfos[TOTAL_SPECIES] = {
+    MonsterInfo(MonsterSpecies::MISSING_NO, bn::sprite_items::spr_missing_no),
     MonsterInfo(MonsterSpecies::LEMMAS, bn::sprite_items::spr_lemmas),
 };
 

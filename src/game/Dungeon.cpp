@@ -18,7 +18,7 @@
 namespace mp::game
 {
 
-Dungeon::Dungeon(iso_bn::random& rng) : _rng(rng), _player(mob::MonsterSpecies::LEMMAS, {0, 0})
+Dungeon::Dungeon(iso_bn::random& rng) : _rng(rng), _player(mob::MonsterSpecies::MISSING_NO, {0, 0})
 {
 #ifdef MP_DEBUG
     _testMapGen();
@@ -33,7 +33,7 @@ auto Dungeon::update() -> bn::optional<scene::SceneType>
 {
     _handleInput();
 
-    _player.update();
+    _player.update(*this);
     _miniMap.update();
 
     return bn::nullopt;

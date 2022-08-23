@@ -13,6 +13,8 @@ namespace mp::game::mob
 
 enum class MonsterSpecies
 {
+    MISSING_NO, // debug species
+
     LEMMAS,
 
     // total species count
