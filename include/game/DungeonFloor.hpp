@@ -22,6 +22,9 @@ namespace mp::game
 
 class BoardPos;
 
+/**
+ * @brief Manages dungeon terrain info.
+ */
 class DungeonFloor final
 {
 public:
