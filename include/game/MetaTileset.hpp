@@ -13,6 +13,7 @@
 #include "bn_regular_bg_item.h"
 #include "bn_regular_bg_map_cell.h"
 #include "bn_regular_bg_map_item.h"
+#include "bn_size.h"
 
 #include "game/DungeonFloor.hpp"
 #include "game/MetaTilesetKind.hpp"
@@ -22,22 +23,24 @@ namespace mp::game
 {
 
 /**
- * @brief Holds 3x3 meta-tile info.
- * (A Meta-tile consists of 3x3 regular_bg tiles, which makes up a single dungeon tile.)
+ * @brief Holds 2x2 meta-tile info.
+ * (A Meta-tile consists of 2x2 regular_bg tiles, which makes up a single dungeon tile.)
  */
 struct MetaTile
 {
 public:
     using TileIndex = u8;
 
+    static constexpr bn::size SIZE_IN_PIXELS = {16, 16};
+
     /**
-     * @brief Follows `graphics/source/template_dungeon_tileset.aseprite` tilemap layer indices.
+     * @brief Number of meta-tiles in a tileset.
      * Includes empty tile as index 0.
      */
-    static constexpr TileIndex TILES_COUNT = 49;
+    static constexpr TileIndex TILES_COUNT = 33;
 
-    static constexpr s32 ROWS = 3;
-    static constexpr s32 COLUMNS = 3;
+    static constexpr s32 ROWS = 2;
+    static constexpr s32 COLUMNS = 2;
     static constexpr s32 CELLS_COUNT = ROWS * COLUMNS;
 
 public:
@@ -51,10 +54,10 @@ public:
     }
 
     /**
-     * @brief Get cell by 3x3 bg tile coordinate.
+     * @brief Get cell by 2x2 bg tile coordinate.
      *
-     * @param bgTileX column coordinate [0..3)
-     * @param bgTileY row coordinate [0..3)
+     * @param bgTileX column coordinate [0..2)
+     * @param bgTileY row coordinate [0..2)
      * @return bn::regular_bg_map_cell
      */
     auto getCell(s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cell;
@@ -92,11 +95,11 @@ public:
     }
 
     /**
-     * @brief Get cell by neighbor floors & 3x3 bg tile coordinate.
+     * @brief Get cell by neighbor floors & 2x2 bg tile coordinate.
      *
      * @param neighbors neighbor floors (center is self)
-     * @param bgTileX column coordinate in single MetaTile [0..3)
-     * @param bgTileY row coordinate in single MetaTile [0..3)
+     * @param bgTileX column coordinate in single MetaTile [0..2)
+     * @param bgTileY row coordinate in single MetaTile [0..2)
      * @return bn::regular_bg_map_cell
      */
     auto getCell(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& neighbors, s32 bgTileX, s32 bgTileY) const

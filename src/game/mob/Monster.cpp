@@ -20,8 +20,8 @@
 namespace mp::game::mob
 {
 
-Monster::Monster(MonsterSpecies species, const BoardPos& pos)
-    : _info(MonsterInfo::fromSpecies(species)), _animation(_info), _pos(pos)
+Monster::Monster(MonsterSpecies species, const BoardPos& pos, const bn::camera_ptr& camera)
+    : _info(MonsterInfo::fromSpecies(species)), _animation(_info, camera), _pos(pos)
 {
 }
 

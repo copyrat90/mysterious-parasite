@@ -8,18 +8,24 @@
 
 #pragma once
 
+#include "bn_fixed_point.h"
 #include "bn_regular_bg_item.h"
 #include "bn_regular_bg_map_item.h"
 #include "bn_regular_bg_map_ptr.h"
 #include "bn_regular_bg_ptr.h"
 
-#include "game/MetaTileset.hpp"
 #include "typedefs.hpp"
+
+namespace bn
+{
+class camera_ptr;
+}
 
 namespace mp::game
 {
 
 class DungeonFloor;
+class MetaTileset;
 
 /**
  * @brief Manages dungeon background scrolling with tileset.
@@ -33,6 +39,7 @@ public:
 
 private:
     const MetaTileset* _metaTileset;
+    const DungeonFloor& _dungeonFloor;
 
     bn::regular_bg_map_cell _cells[CELLS_COUNT];
     bn::regular_bg_map_item _mapItem;
@@ -42,19 +49,30 @@ private:
 
     bool _cellsReloadRequired = false;
 
+    bn::fixed_point _prevCamPos;
+
 public:
-    DungeonBg();
+    DungeonBg(const bn::camera_ptr&, const DungeonFloor&);
 
     void update();
 
-    void redrawAll(const DungeonFloor&);
-    void redrawCell(s32 x, s32 y, const DungeonFloor&);
+    void redrawAll();
+    // void redrawCell(s32 x, s32 y);
 
     bool isVisible() const;
     void setVisible(bool isVisible);
 
+    void setMetaTileset(const MetaTileset&);
+
 private:
-    void _initGraphics();
+    void _initGraphics(const bn::camera_ptr&);
+
+    const bn::camera_ptr& _getCamera() const;
+
+    /**
+     * @brief only redraw the update-required cells.
+     */
+    void _redrawNecessaryCells();
 };
 
 } // namespace mp::game

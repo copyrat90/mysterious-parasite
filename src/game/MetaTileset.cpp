@@ -48,6 +48,8 @@ auto MetaTileset::getCell(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& 
 
 auto MetaTileset::_calcMetaTileIndex(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& neighbors) -> TileIndex
 {
+    BN_ERROR("WIP: should be changed from 3x3 to 2x2 meta-tile!");
+
     using FloorType = DungeonFloor::Type;
 
     // if center tile is a floor, just return the floor tile.

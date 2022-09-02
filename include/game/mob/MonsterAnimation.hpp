@@ -37,7 +37,7 @@ public:
     };
 
 public:
-    MonsterAnimation(const MonsterInfo&);
+    MonsterAnimation(const MonsterInfo&, const bn::camera_ptr&);
 
     void update(const Dungeon&);
 
@@ -50,7 +50,7 @@ public:
     void startAnimation(Type animType, Direction9);
 
 private:
-    void _initGraphics();
+    void _initGraphics(const bn::camera_ptr&);
 
     auto _getAnimation(Type, Direction9) -> bn::sprite_animate_action<consts::MOB_ANIM_MAX_KEYFRAMES>;
 

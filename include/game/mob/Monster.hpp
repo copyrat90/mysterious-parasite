@@ -32,7 +32,7 @@ class MonsterAction;
 class Monster final
 {
 public:
-    Monster(MonsterSpecies, const BoardPos&);
+    Monster(MonsterSpecies, const BoardPos&, const bn::camera_ptr&);
 
     /**
      * @brief Frame update, mostly for animations.

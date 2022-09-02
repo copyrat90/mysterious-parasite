@@ -12,13 +12,21 @@
 #include "iso_bn_random.h"
 
 #include "constants.hpp"
+#include "game/MetaTileset.hpp"
 #include "game/mob/MonsterAction.hpp"
 #include "game/mob/MonsterSpecies.hpp"
 
 namespace mp::game
 {
 
-Dungeon::Dungeon(iso_bn::random& rng) : _rng(rng), _player(mob::MonsterSpecies::MISSING_NO, {0, 0})
+namespace
+{
+constexpr bn::fixed_point INIT_CAM_POS = {-4, 0};
+}
+
+Dungeon::Dungeon(iso_bn::random& rng)
+    : _rng(rng), _camera(bn::camera_ptr::create(INIT_CAM_POS)), _bg(_camera, _floor),
+      _player(mob::MonsterSpecies::MISSING_NO, {0, 0}, _camera)
 {
 #ifdef MP_DEBUG
     _testMapGen();
@@ -35,13 +43,14 @@ auto Dungeon::update() -> bn::optional<scene::SceneType>
 
     _player.update(*this);
     _miniMap.update();
+    _bg.update();
 
     return bn::nullopt;
 }
 
 bool Dungeon::isTurnOngoing() const
 {
-    return _turnProgressDelayCounter > 0;
+    return _camMoveAction.has_value();
 }
 
 #ifdef MP_DEBUG
@@ -51,7 +60,7 @@ void Dungeon::_testMapGen()
     _miniMap.updateBgPos(_player);
 
     _floor.generate(_rng);
-    _bg.redrawAll(_floor);
+    _bg.redrawAll();
     _miniMap.redrawAll(_floor);
 }
 #endif
@@ -74,34 +83,51 @@ void Dungeon::_handleInput()
     if (bn::keypad::left_held() || bn::keypad::right_held() || bn::keypad::up_held() || bn::keypad::down_held())
     {
         using ActionType = mob::MonsterAction::Type;
+        using Dir9 = Direction9;
 
-        const Direction9 inputDirection = getDirectionFromKeyHold();
-        const auto candidatePlayerPos = _player.getBoardPos() + convertDir9ToPos(inputDirection);
+        const Dir9 inputDirection = getDirectionFromKeyHold();
 
-        // if player can move to the input direction, move to there.
-        if (_canMoveTo(_player, candidatePlayerPos))
+        // ignore diagonal inputs, as diagonal movements are not allowed in this game.
+        if (inputDirection == Dir9::UP || inputDirection == Dir9::DOWN || inputDirection == Dir9::LEFT ||
+            inputDirection == Dir9::RIGHT)
         {
-            _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
-            _miniMap.updateBgPos(_player);
-            _startTurnOngoing();
-        }
-        // if not, just change the player's direction without moving.
-        else
-        {
-            _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::CHANGE_DIRECTION));
+            const auto moveDiff = convertDir9ToPos(inputDirection);
+            const auto candidatePlayerPos = _player.getBoardPos() + moveDiff;
+
+            // if player can move to the input direction, move to there.
+            if (_canMoveTo(_player, candidatePlayerPos))
+            {
+                _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
+                _miniMap.updateBgPos(_player);
+                _startTurnOngoing(moveDiff);
+            }
+            // if not, just change the player's direction without moving.
+            else
+            {
+                _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::CHANGE_DIRECTION));
+            }
         }
     }
 }
 
-void Dungeon::_startTurnOngoing()
+void Dungeon::_startTurnOngoing(const BoardPos& moveDiff)
 {
-    _turnProgressDelayCounter = consts::TURN_PROGRESS_DELAY;
+    bn::fixed_point destination = _camera.position();
+    destination += {moveDiff.x * MetaTile::SIZE_IN_PIXELS.width(), moveDiff.y * MetaTile::SIZE_IN_PIXELS.height()};
+
+    _camMoveAction = bn::camera_move_to_action(_camera, consts::ACTOR_MOVE_FRAMES, destination);
 }
 
 bool Dungeon::_updateTurnOngoing()
 {
-    --_turnProgressDelayCounter;
-    return _turnProgressDelayCounter <= 0;
+    BN_ASSERT(_camMoveAction);
+    if (_camMoveAction->done())
+    {
+        _camMoveAction.reset();
+        return true;
+    }
+    _camMoveAction->update();
+    return false;
 }
 
 bool Dungeon::_canMoveTo(const mob::Monster& mob, const BoardPos& destination) const

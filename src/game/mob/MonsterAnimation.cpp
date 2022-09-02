@@ -8,17 +8,19 @@
 
 #include "game/mob/MonsterAnimation.hpp"
 
+#include "bn_camera_ptr.h"
+
 #include "game/Dungeon.hpp"
 #include "game/mob/MonsterInfo.hpp"
 
 namespace mp::game::mob
 {
 
-MonsterAnimation::MonsterAnimation(const MonsterInfo& mobInfo)
+MonsterAnimation::MonsterAnimation(const MonsterInfo& mobInfo, const bn::camera_ptr& camera)
     : _mobInfo(mobInfo), _sprite(mobInfo.spriteItem.create_sprite(0, 0)),
       _animateAction(_getAnimation(Type::IDLE, Direction9::DOWN))
 {
-    _initGraphics();
+    _initGraphics(camera);
 }
 
 void MonsterAnimation::update(const Dungeon& dungeon)
@@ -70,10 +72,11 @@ void MonsterAnimation::startAnimation(Type animType, Direction9 direction)
     _animateAction = _getAnimation(animType, direction);
 }
 
-void MonsterAnimation::_initGraphics()
+void MonsterAnimation::_initGraphics(const bn::camera_ptr& camera)
 {
     setVisible(false);
     _sprite.set_bg_priority(consts::DUNGEON_BG_PRIORITY);
+    _sprite.set_camera(camera);
 }
 
 auto MonsterAnimation::_getAnimation(Type animType, Direction9 direction)
