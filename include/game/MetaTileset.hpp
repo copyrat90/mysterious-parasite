@@ -31,7 +31,7 @@ struct MetaTile
 public:
     using TileIndex = u8;
 
-    static constexpr bn::size SIZE_IN_PIXELS = {16, 16};
+    static constexpr bn::size SIZE_IN_PIXELS = consts::DUNGEON_META_TILE_SIZE;
 
     /**
      * @brief Number of meta-tiles in a tileset.
@@ -102,8 +102,7 @@ public:
      * @param bgTileY row coordinate in single MetaTile [0..2)
      * @return bn::regular_bg_map_cell
      */
-    auto getCell(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& neighbors, s32 bgTileX, s32 bgTileY) const
-        -> bn::regular_bg_map_cell;
+    auto getCell(const DungeonFloor::Neighbor3x3& neighbors, s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cell;
 
 private:
     /**
@@ -112,7 +111,7 @@ private:
      * @param neighbors neighbor floors (center is self)
      * @return TileIndex
      */
-    static TileIndex _calcMetaTileIndex(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& neighbors);
+    static TileIndex _calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors);
 
 private:
     const bn::regular_bg_item& _bgItem;

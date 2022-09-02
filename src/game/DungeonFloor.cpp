@@ -27,17 +27,37 @@ DungeonFloor::DungeonFloor() : _seeds({0, 0, 0})
 {
 }
 
-auto DungeonFloor::getTile(s32 x, s32 y) const -> Type
+auto DungeonFloor::getFloorTypeOf(s32 x, s32 y) const -> Type
 {
-    BN_ASSERT(0 <= x && x < FLOOR_WIDTH, "Tile OOB for x(", x, ")");
-    BN_ASSERT(0 <= y && y < FLOOR_HEIGHT, "Tile OOB for y(", y, ")");
+    if (x < 0 || y < 0 || x >= FLOOR_WIDTH || y >= FLOOR_HEIGHT)
+        return Type::WALL;
 
     return _board[y][x];
 }
 
-auto DungeonFloor::getTile(const BoardPos& pos) const -> Type
+auto DungeonFloor::getFloorTypeOf(const BoardPos& pos) const -> Type
 {
-    return getTile(pos.x, pos.y);
+    return getFloorTypeOf(pos.x, pos.y);
+}
+
+auto DungeonFloor::getNeighborsOf(s32 x, s32 y) const -> Neighbor3x3
+{
+    Neighbor3x3 result;
+    for (s32 iy = 0; iy < 3; ++iy)
+    {
+        const s32 py = y + iy - 1;
+        for (s32 ix = 0; ix < 3; ++ix)
+        {
+            const s32 px = x + ix - 1;
+            result[iy][ix] = getFloorTypeOf(px, py);
+        }
+    }
+    return result;
+}
+
+auto DungeonFloor::getNeighborsOf(const BoardPos& pos) const -> Neighbor3x3
+{
+    return getNeighborsOf(pos.x, pos.y);
 }
 
 void DungeonFloor::generate(iso_bn::random& rng)

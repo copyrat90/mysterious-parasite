@@ -19,14 +19,9 @@
 namespace mp::game
 {
 
-namespace
-{
-constexpr bn::fixed_point INIT_CAM_POS = {-4, 0};
-}
-
 Dungeon::Dungeon(iso_bn::random& rng)
-    : _rng(rng), _camera(bn::camera_ptr::create(INIT_CAM_POS)), _bg(_camera, _floor),
-      _player(mob::MonsterSpecies::MISSING_NO, {0, 0}, _camera)
+    : _rng(rng), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera),
+      _player(mob::MonsterSpecies::LEMMAS, {0, 0}, _camera)
 {
 #ifdef MP_DEBUG
     _testMapGen();
@@ -35,6 +30,7 @@ Dungeon::Dungeon(iso_bn::random& rng)
     _miniMap.updateBgPos(_player);
     _miniMap.setVisible(true);
     _player.setVisible(true);
+    _bg.setVisible(true);
 }
 
 auto Dungeon::update() -> bn::optional<scene::SceneType>
@@ -43,7 +39,10 @@ auto Dungeon::update() -> bn::optional<scene::SceneType>
 
     _player.update(*this);
     _miniMap.update();
-    _bg.update();
+
+    if (_camMoveAction)
+        _updateBgScroll();
+    _bg.update(_floor, _player);
 
     return bn::nullopt;
 }
@@ -69,10 +68,7 @@ void Dungeon::_handleInput()
 {
     // Don't receive any input if the turn is ongoing.
     if (isTurnOngoing())
-    {
-        if (!_updateTurnOngoing())
-            return;
-    }
+        return;
 
 #ifdef MP_DEBUG
     if (bn::keypad::select_held() && bn::keypad::l_pressed())
@@ -99,7 +95,7 @@ void Dungeon::_handleInput()
             {
                 _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
                 _miniMap.updateBgPos(_player);
-                _startTurnOngoing(moveDiff);
+                _startBgScroll(inputDirection);
             }
             // if not, just change the player's direction without moving.
             else
@@ -110,15 +106,19 @@ void Dungeon::_handleInput()
     }
 }
 
-void Dungeon::_startTurnOngoing(const BoardPos& moveDiff)
+void Dungeon::_startBgScroll(Direction9 moveDir)
 {
+    const auto moveDiff = convertDir9ToPos(moveDir);
+
     bn::fixed_point destination = _camera.position();
     destination += {moveDiff.x * MetaTile::SIZE_IN_PIXELS.width(), moveDiff.y * MetaTile::SIZE_IN_PIXELS.height()};
+
+    _bg.startBgScroll(moveDir);
 
     _camMoveAction = bn::camera_move_to_action(_camera, consts::ACTOR_MOVE_FRAMES, destination);
 }
 
-bool Dungeon::_updateTurnOngoing()
+bool Dungeon::_updateBgScroll()
 {
     BN_ASSERT(_camMoveAction);
     if (_camMoveAction->done())
@@ -133,11 +133,11 @@ bool Dungeon::_updateTurnOngoing()
 bool Dungeon::_canMoveTo(const mob::Monster& mob, const BoardPos& destination) const
 {
     using FloorType = DungeonFloor::Type;
-    if (_floor.getTile(destination) == FloorType::WALL)
+    if (_floor.getFloorTypeOf(destination) == FloorType::WALL)
         return false;
     // check diagonal adjacent wall
-    if (_floor.getTile(destination.x, mob.getBoardPos().y) == FloorType::WALL ||
-        _floor.getTile(mob.getBoardPos().x, destination.y) == FloorType::WALL)
+    if (_floor.getFloorTypeOf(destination.x, mob.getBoardPos().y) == FloorType::WALL ||
+        _floor.getFloorTypeOf(mob.getBoardPos().x, destination.y) == FloorType::WALL)
         return false;
 
     // collide with player

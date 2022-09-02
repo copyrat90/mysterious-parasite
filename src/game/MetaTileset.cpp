@@ -8,6 +8,8 @@
 
 #include "game/MetaTileset.hpp"
 
+#include "bn_log.h"
+
 #include "bn_regular_bg_items_bg_dungeon_tileset_placeholder.h"
 
 namespace mp::game
@@ -39,23 +41,22 @@ auto MetaTile::getCell(s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cel
     return cells[bgTileY * COLUMNS + bgTileX];
 }
 
-auto MetaTileset::getCell(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& neighbors, s32 bgTileX,
-                          s32 bgTileY) const -> bn::regular_bg_map_cell
+auto MetaTileset::getCell(const DungeonFloor::Neighbor3x3& neighbors, s32 bgTileX, s32 bgTileY) const
+    -> bn::regular_bg_map_cell
 {
     TileIndex idx = _calcMetaTileIndex(neighbors);
     return _metaTiles[idx].getCell(bgTileX, bgTileY);
 }
 
-auto MetaTileset::_calcMetaTileIndex(const bn::array<bn::array<DungeonFloor::Type, 3>, 3>& neighbors) -> TileIndex
+auto MetaTileset::_calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors) -> TileIndex
 {
-    BN_ERROR("WIP: should be changed from 3x3 to 2x2 meta-tile!");
-
     using FloorType = DungeonFloor::Type;
 
+    // TODO: load wall/floor variations, instead of default one.
+
     // if center tile is a floor, just return the floor tile.
-    // this can be changed in the future, if you want a various floors with different neighbor walls.
     if (neighbors[1][1] == FloorType::FLOOR)
-        return 1;
+        return 26;
 
     // top-left to bottom-right wall flags
     s32 wallFlags = 0;
@@ -66,102 +67,66 @@ auto MetaTileset::_calcMetaTileIndex(const bn::array<bn::array<DungeonFloor::Typ
 
     switch (wallFlags)
     {
-    case (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 2;
-    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8):
-        return 3;
-    case (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7):
-        return 4;
-    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 5;
+    // full wall
     case 511:
-        return 6;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7):
-        return 7;
-    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5):
-        return 8;
-    case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5):
-        return 9;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4):
-        return 10;
-    case (1 << 4) + (1 << 5) + (1 << 7):
-        return 11;
-    case (1 << 3) + (1 << 4) + (1 << 5):
-        return 12;
-    case (1 << 3) + (1 << 4) + (1 << 7):
-        return 13;
-    case (1 << 1) + (1 << 4) + (1 << 7):
-        return 14;
-    case (1 << 4):
-        return 15;
-    case (1 << 1) + (1 << 4) + (1 << 5):
-        return 16;
-    case (1 << 1) + (1 << 3) + (1 << 4):
-        return 17;
-    case (1 << 4) + (1 << 7):
-        return 18;
-    case (1 << 4) + (1 << 5):
-        return 19;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 20;
-    case (1 << 3) + (1 << 4):
-        return 21;
-    case (1 << 1) + (1 << 4):
-        return 22;
-    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 23;
-    case (1 << 1) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 24;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 7):
-        return 25;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5):
-        return 26;
-    case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 27;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7):
-        return 28;
-    case (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 29;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8):
-        return 30;
+        return 1;
+
+    // corner (inner) walls
     case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7):
-        return 31;
+        return 6; // top-left
     case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 32;
+        return 7; // top-right
     case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8):
-        return 33;
+        return 12; // bottom-left
     case (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8):
-        return 34;
-    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 35;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 7):
-        return 36;
-    case (1 << 1) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 37;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7):
-        return 38;
-    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7):
-        return 39;
-    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 40;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5):
-        return 41;
-    case (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5):
-        return 42;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 43;
-    case (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7):
-        return 44;
-    case (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 45;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7):
-        return 46;
-    case (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7):
-        return 47;
-    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
-        return 48;
+        return 13; // bottom-right
+
+    // corner (outer) walls
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5):
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 0):
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 8):
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 0) + (1 << 8):
+        return 22; // bottom-left
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4):
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 2):
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6):
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 2) + (1 << 6):
+        return 23; // bottom-right
+    case (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
+    case (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8) + (1 << 2):
+    case (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8) + (1 << 6):
+    case (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8) + (1 << 2) + (1 << 6):
+        return 24; // top-left
+    case (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7):
+    case (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7) + (1 << 0):
+    case (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7) + (1 << 8):
+    case (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7) + (1 << 0) + (1 << 8):
+        return 25; // top-right
+
+    // straight walls
+    case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5):
+    case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6):
+    case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 8):
+    case (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 8):
+        return 2; // top
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7):
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7) + (1 << 2):
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7) + (1 << 8):
+    case (1 << 0) + (1 << 1) + (1 << 3) + (1 << 4) + (1 << 6) + (1 << 7) + (1 << 2) + (1 << 8):
+        return 14; // left
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8):
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8) + (1 << 0):
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8) + (1 << 6):
+    case (1 << 1) + (1 << 2) + (1 << 4) + (1 << 5) + (1 << 7) + (1 << 8) + (1 << 0) + (1 << 6):
+        return 18; // right
+    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8):
+    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8) + (1 << 0):
+    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8) + (1 << 2):
+    case (1 << 3) + (1 << 4) + (1 << 5) + (1 << 6) + (1 << 7) + (1 << 8) + (1 << 0) + (1 << 2):
+        return 8; // bottom
+
     default:
-        BN_ERROR("invalid neighbor wall flag(", wallFlags, ")");
+        BN_LOG("invalid neighbor wall flag(", wallFlags, ")");
     }
     return 0;
 }

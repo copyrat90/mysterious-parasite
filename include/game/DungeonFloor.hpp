@@ -42,6 +42,7 @@ public:
     static constexpr s32 COLUMNS = consts::DUNGEON_FLOOR_SIZE.width();
 
     using Board = bn::array<bn::array<Type, COLUMNS>, ROWS>;
+    using Neighbor3x3 = bn::array<bn::array<Type, 3>, 3>;
 
 private:
     bn::array<u32, 3> _seeds;
@@ -50,8 +51,11 @@ private:
 public:
     DungeonFloor();
 
-    Type getTile(s32 x, s32 y) const;
-    Type getTile(const BoardPos& pos) const;
+    Type getFloorTypeOf(s32 x, s32 y) const;
+    Type getFloorTypeOf(const BoardPos& pos) const;
+
+    Neighbor3x3 getNeighborsOf(s32 x, s32 y) const;
+    Neighbor3x3 getNeighborsOf(const BoardPos& pos) const;
 
     /**
      * @brief Generate random dungeon floor.

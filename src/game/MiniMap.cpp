@@ -176,11 +176,11 @@ MiniMap::TileIndex MiniMap::_calculateTileIndex(s32 x, s32 y, const DungeonFloor
 
     using Cell = DungeonFloor::Type;
 
-    auto cur = dungeonFloor.getTile(x, y);
-    auto up = (y - 1 >= 0) ? dungeonFloor.getTile(x, y - 1) : Cell::WALL;
-    auto down = (y + 1 < ROWS) ? dungeonFloor.getTile(x, y + 1) : Cell::WALL;
-    auto left = (x - 1 >= 0) ? dungeonFloor.getTile(x - 1, y) : Cell::WALL;
-    auto right = (x + 1 < COLUMNS) ? dungeonFloor.getTile(x + 1, y) : Cell::WALL;
+    auto cur = dungeonFloor.getFloorTypeOf(x, y);
+    auto up = (y - 1 >= 0) ? dungeonFloor.getFloorTypeOf(x, y - 1) : Cell::WALL;
+    auto down = (y + 1 < ROWS) ? dungeonFloor.getFloorTypeOf(x, y + 1) : Cell::WALL;
+    auto left = (x - 1 >= 0) ? dungeonFloor.getFloorTypeOf(x - 1, y) : Cell::WALL;
+    auto right = (x + 1 < COLUMNS) ? dungeonFloor.getFloorTypeOf(x + 1, y) : Cell::WALL;
 
     // TODO: Player의 시야 고려하여 dithering 여부 결정
     // TODO: 해당 cell 위에 있는 Actor/Item도 고려하여 그릴 타일 결정

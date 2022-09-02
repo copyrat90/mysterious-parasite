@@ -40,12 +40,8 @@ public:
 private:
     void _handleInput();
 
-    void _startTurnOngoing(const BoardPos& moveDiff);
-    /**
-     * @brief Update the turn progress delay countdown.
-     * @return whether the input should be received from now on.
-     */
-    bool _updateTurnOngoing();
+    void _startBgScroll(Direction9 moveDir);
+    bool _updateBgScroll();
 
     bool _canMoveTo(const mob::Monster&, const BoardPos& destination) const;
 

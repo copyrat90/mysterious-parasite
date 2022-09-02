@@ -14,11 +14,16 @@
 #include "bn_regular_bg_map_ptr.h"
 #include "bn_regular_bg_ptr.h"
 
+#include "game/Direction9.hpp"
 #include "typedefs.hpp"
 
 namespace bn
 {
 class camera_ptr;
+}
+namespace mp::game::mob
+{
+class Monster;
 }
 
 namespace mp::game
@@ -39,7 +44,6 @@ public:
 
 private:
     const MetaTileset* _metaTileset;
-    const DungeonFloor& _dungeonFloor;
 
     bn::regular_bg_map_cell _cells[CELLS_COUNT];
     bn::regular_bg_map_item _mapItem;
@@ -49,15 +53,18 @@ private:
 
     bool _cellsReloadRequired = false;
 
-    bn::fixed_point _prevCamPos;
+    s32 _bgScrollCountdown = 0;
+    Direction9 _bgScrollDirection;
 
 public:
-    DungeonBg(const bn::camera_ptr&, const DungeonFloor&);
+    DungeonBg(const bn::camera_ptr&);
 
-    void update();
+    void update(const DungeonFloor&, const mob::Monster& player);
 
     void redrawAll();
-    // void redrawCell(s32 x, s32 y);
+
+    void startBgScroll(Direction9);
+    bool isBgScrollOngoing() const;
 
     bool isVisible() const;
     void setVisible(bool isVisible);
@@ -67,12 +74,15 @@ public:
 private:
     void _initGraphics(const bn::camera_ptr&);
 
-    const bn::camera_ptr& _getCamera() const;
+    void _updateBgScroll(const DungeonFloor&, const mob::Monster& player);
 
     /**
-     * @brief only redraw the update-required cells.
+     * @brief Redraw scrolled cells on screen boundary, by 2 pass.
+     * @param scrollPhase [0..1] determine which pass this redraw is.
      */
-    void _redrawNecessaryCells();
+    void _redrawScrolledCells(s32 scrollPhase, const DungeonFloor&, const mob::Monster& player);
+
+    const bn::camera_ptr& _getCamera() const;
 };
 
 } // namespace mp::game
