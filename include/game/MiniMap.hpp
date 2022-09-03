@@ -30,9 +30,10 @@ class DungeonFloor;
 
 class MiniMap final
 {
-public:
+private:
     enum TileIndex : u8;
 
+public:
     static constexpr s32 ROWS = consts::DUNGEON_FLOOR_SIZE.height();
     static constexpr s32 COLUMNS = consts::DUNGEON_FLOOR_SIZE.width();
     static constexpr s32 CELLS_COUNT = consts::DUNGEON_FLOOR_CELLS_COUNT;
@@ -55,8 +56,8 @@ public:
     void update();
     void updateBgPos(const mob::Monster& player);
 
-    void redrawAll(const DungeonFloor& dungeonFloor);
-    void redrawCell(s32 x, s32 y, const DungeonFloor& dungeonFloor);
+    void redrawAll(const DungeonFloor&);
+    void redrawCell(s32 x, s32 y, const DungeonFloor&);
 
     bool isVisible() const;
     void setVisible(bool isVisible);
@@ -64,7 +65,7 @@ public:
 private:
     void _initGraphics();
 
-    TileIndex _calculateTileIndex(s32 x, s32 y, const DungeonFloor& dungeonFloor) const;
+    TileIndex _calculateTileIndex(s32 x, s32 y, const DungeonFloor&) const;
 };
 
 } // namespace mp::game

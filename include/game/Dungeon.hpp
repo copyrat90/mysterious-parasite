@@ -8,7 +8,10 @@
 
 #pragma once
 
+#include "bn_camera_actions.h"
+#include "bn_camera_ptr.h"
 #include "bn_forward_list.h"
+#include "bn_optional.h"
 
 #include "constants.hpp"
 #include "game/DungeonBg.hpp"
@@ -37,12 +40,8 @@ public:
 private:
     void _handleInput();
 
-    void _startTurnOngoing();
-    /**
-     * @brief Update the turn progress delay countdown.
-     * @return whether the input should be received now.
-     */
-    bool _updateTurnOngoing();
+    void _startBgScroll(Direction9 moveDir);
+    bool _updateBgScroll();
 
     bool _canMoveTo(const mob::Monster&, const BoardPos& destination) const;
 
@@ -53,6 +52,8 @@ private:
 
 private:
     iso_bn::random& _rng;
+    bn::camera_ptr _camera;
+    bn::optional<bn::camera_move_to_action> _camMoveAction;
 
     DungeonFloor _floor;
     DungeonBg _bg;
@@ -61,8 +62,6 @@ private:
     mob::Monster _player;
     bn::forward_list<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;
     bn::forward_list<item::Item, consts::DUNGEON_ITEM_MAX_COUNT> _items;
-
-    s32 _turnProgressDelayCounter = 0;
 };
 
 } // namespace mp::game

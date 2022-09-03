@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "bn_optional.h"
+#include "bn_sprite_actions.h"
 #include "bn_sprite_animate_actions.h"
 #include "bn_sprite_ptr.h"
 
@@ -37,7 +39,7 @@ public:
     };
 
 public:
-    MonsterAnimation(const MonsterInfo&);
+    MonsterAnimation(const MonsterInfo&, const bn::camera_ptr&);
 
     void update(const Dungeon&);
 
@@ -45,12 +47,22 @@ public:
     void setVisible(bool);
 
     /**
-     * @brief Check if the same animation is ongoing, and if not, start the animation.
+     * @brief Start action, including moving & sprite animation.
      */
-    void startAnimation(Type animType, Direction9);
+    void startActions(Type animType, Direction9);
 
 private:
-    void _initGraphics();
+    void _initGraphics(const bn::camera_ptr&);
+
+    void _updateAnimation(const Dungeon& dungeon);
+    void _updateMoveAction();
+
+    /**
+     * @brief Check if the same animation is ongoing, and if not, start the animation.
+     */
+    void _startAnimation(Type animType, Direction9);
+
+    void _startMoveAction(Direction9);
 
     auto _getAnimation(Type, Direction9) -> bn::sprite_animate_action<consts::MOB_ANIM_MAX_KEYFRAMES>;
 
@@ -68,6 +80,7 @@ private:
 
     bn::sprite_ptr _sprite;
     bn::sprite_animate_action<consts::MOB_ANIM_MAX_KEYFRAMES> _animateAction;
+    bn::optional<bn::sprite_move_to_action> _moveAction;
 
     Type _animType = Type::IDLE;
     Direction9 _direction = Direction9::DOWN;

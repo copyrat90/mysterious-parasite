@@ -20,8 +20,8 @@
 namespace mp::game::mob
 {
 
-Monster::Monster(MonsterSpecies species, const BoardPos& pos)
-    : _info(MonsterInfo::fromSpecies(species)), _animation(_info), _pos(pos)
+Monster::Monster(MonsterSpecies species, const BoardPos& pos, const bn::camera_ptr& camera)
+    : _info(MonsterInfo::fromSpecies(species)), _animation(_info, camera), _pos(pos)
 {
 }
 
@@ -37,10 +37,10 @@ void Monster::actPlayer(const MonsterAction& action)
         using Action = mob::MonsterAction::Type;
         using AnimType = MonsterAnimation::Type;
     case Action::CHANGE_DIRECTION:
-        _animation.startAnimation(AnimType::IDLE, action.getDirection());
+        _animation.startActions(AnimType::IDLE, action.getDirection());
         break;
     case Action::MOVE:
-        _animation.startAnimation(AnimType::WALK, action.getDirection());
+        _animation.startActions(AnimType::WALK, action.getDirection());
         _pos += action.getDirectionPos();
         break;
     case Action::DO_NOTHING:

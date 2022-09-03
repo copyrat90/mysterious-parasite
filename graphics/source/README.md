@@ -38,6 +38,8 @@ Exported `*.bmp` files should go to the parent directory, which is `/graphics`.
 
 # How to create your own tileset & export
 
+*(This is obsolete now; I will update it later.)*
+
 1. Copy the file `template_dungeon_tileset.aseprite`, and modify it to create your own version.
     * Note that **tile palette index order should not be changed, and must start from 0, and end at 48.**
         + **Use Manual mode (Space+1) to avoid accidentally creating a new tile.**

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "bn_fixed_point.h"
 #include "bn_size.h"
 
 #include "typedefs.hpp"
@@ -15,9 +16,12 @@
 namespace mp::consts
 {
 
-inline constexpr s32 TURN_PROGRESS_DELAY = 15;
+inline constexpr s32 ACTOR_MOVE_FRAMES = 8;
+
+constexpr bn::fixed_point INIT_CAM_POS = {-8, -8};
 
 inline constexpr bn::size DUNGEON_FLOOR_SIZE = {64, 64};
+inline constexpr bn::size DUNGEON_META_TILE_SIZE = {16, 16};
 inline constexpr s32 DUNGEON_FLOOR_CELLS_COUNT = DUNGEON_FLOOR_SIZE.width() * DUNGEON_FLOOR_SIZE.height();
 
 inline constexpr s32 DUNGEON_ITEM_MAX_COUNT = 20;

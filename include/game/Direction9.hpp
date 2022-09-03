@@ -10,7 +10,7 @@ namespace mp::game
 
 /**
  * @brief No direction + clockwise 8 directions, from UP to UP_LEFT.
- * DO NOT CHANGE THE ORDER, as it is used as graphics indexes on `bn::sprite_animatie_action`.
+ * DO NOT CHANGE THE ORDER, as it is used as graphics indexes on `bn::sprite_animate_action`.
  */
 enum Direction9
 {
