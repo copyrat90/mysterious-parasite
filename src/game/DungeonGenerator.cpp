@@ -18,6 +18,8 @@
 
 #include "iso_bn_random.h"
 
+#include "utils.hpp"
+
 namespace mp::game
 {
 
@@ -295,16 +297,6 @@ static void _addAdjCountToNeighbors(const Gen::Room& prev, Gen::Room& cur, s32 x
                 cur.floors[cy][cx] = (Gen::FloorType)((u8)cur.floors[cy][cx] + 1);
 }
 
-static constexpr s32 _upperTwoPowOf(s32 num)
-{
-    BN_ASSERT(0 <= num && num <= (1 << 30));
-
-    s32 result = 1;
-    while (result < num)
-        result <<= 1;
-    return result;
-}
-
 /**
  * @brief BFS used in Cellular automata room generation.
  * @param removeMode if enabled, fill in the passed small blob with walls.
@@ -317,7 +309,7 @@ static s32 _bfsCellular(s8 x, s8 y, bool removeMode, Gen::Room& room, Gen::Room&
     if (removeMode)
         room.floors[y][x] = Gen::FloorType::WALL;
 
-    bn::deque<BoardPos, _upperTwoPowOf(2 * Gen::ROOM_MAX_LEN + 4)> queue;
+    bn::deque<BoardPos, utils::upperTwoPowOf(2 * Gen::ROOM_MAX_LEN + 4)> queue;
     visited.floors[y][x] = (Gen::FloorType) true;
     queue.push_back({x, y});
     s32 blobSize = 1;
@@ -609,7 +601,7 @@ s32 Gen::_shortestPathLen(const BoardPos& p1, const BoardPos& p2, const Board& b
         BoardPos pos;
     };
 
-    bn::deque<QElem, _upperTwoPowOf(2 * bn::min(ROWS, COLUMNS) + 4)> queue;
+    bn::deque<QElem, utils::upperTwoPowOf(2 * bn::min(ROWS, COLUMNS) + 4)> queue;
     bn::bitset<COLUMNS * ROWS> visited;
 
     visited[_boardCellIndex(p1)] = true;

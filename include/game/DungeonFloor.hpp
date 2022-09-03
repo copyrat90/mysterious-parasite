@@ -9,8 +9,10 @@
 #pragma once
 
 #include "bn_array.h"
+#include "bn_bitset.h"
 
 #include "constants.hpp"
+#include "utils.hpp"
 
 namespace iso_bn
 {
@@ -41,21 +43,41 @@ public:
     static constexpr s32 ROWS = consts::DUNGEON_FLOOR_SIZE.height();
     static constexpr s32 COLUMNS = consts::DUNGEON_FLOOR_SIZE.width();
 
+    // floor or wall
     using Board = bn::array<bn::array<Type, COLUMNS>, ROWS>;
+    // how many light source affects the floor
+    using BrightnessBoard = bn::array<bn::array<s8, COLUMNS>, ROWS>;
+    // floor is discovered or not
+    using DiscoverBoard = bn::array<bn::bitset<COLUMNS>, ROWS>;
+
     using Neighbor3x3 = bn::array<bn::array<Type, 3>, 3>;
+    using NeighborBrightness3x3 = bn::array<bn::array<s8, 3>, 3>;
+    using NeighborDiscover3x3 = bn::array<bn::bitset<utils::upperEightPowOf(3)>, 3>;
 
 private:
     bn::array<u32, 3> _seeds;
+
     Board _board;
+    BrightnessBoard _brightnesses;
+    DiscoverBoard _discoverBoard;
 
 public:
     DungeonFloor();
 
     Type getFloorTypeOf(s32 x, s32 y) const;
     Type getFloorTypeOf(const BoardPos& pos) const;
+    auto getNeighborsOf(s32 x, s32 y) const -> Neighbor3x3;
+    auto getNeighborsOf(const BoardPos& pos) const -> Neighbor3x3;
 
-    Neighbor3x3 getNeighborsOf(s32 x, s32 y) const;
-    Neighbor3x3 getNeighborsOf(const BoardPos& pos) const;
+    s8 getBrightnessOf(s32 x, s32 y) const;
+    s8 getBrightnessOf(const BoardPos& pos) const;
+    auto getNeighborBrightnessOf(s32 x, s32 y) const -> NeighborBrightness3x3;
+    auto getNeighborBrightnessOf(const BoardPos& pos) const -> NeighborBrightness3x3;
+
+    bool getDiscoverOf(s32 x, s32 y) const;
+    bool getDiscoverOf(const BoardPos& pos) const;
+    auto getNeighborDiscoverOf(s32 x, s32 y) const -> NeighborDiscover3x3;
+    auto getNeighborDiscoverOf(const BoardPos& pos) const -> NeighborDiscover3x3;
 
     /**
      * @brief Generate random dungeon floor.

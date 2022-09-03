@@ -28,7 +28,7 @@ constexpr MetaTileset _metaTilesets[TOTAL_TILESETS] = {
 
 auto MetaTileset::fromKind(MetaTilesetKind kind) -> const MetaTileset&
 {
-    BN_ASSERT(0 <= (s32)kind && (s32)kind < TOTAL_TILESETS, "Invalid MetaTileset::Kind(", (s32)kind, ")");
+    BN_ASSERT((s32)kind < TOTAL_TILESETS, "Invalid MetaTileset::Kind(", (s32)kind, ")");
 
     return _metaTilesets[(s32)kind];
 }

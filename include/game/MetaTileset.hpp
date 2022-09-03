@@ -35,9 +35,9 @@ public:
 
     /**
      * @brief Number of meta-tiles in a tileset.
-     * Includes empty tile as index 0.
+     * Includes invalid 'X' tile as index 0.
      */
-    static constexpr TileIndex TILES_COUNT = 33;
+    static constexpr TileIndex TILES_COUNT = 34;
 
     static constexpr s32 ROWS = 2;
     static constexpr s32 COLUMNS = 2;
@@ -67,7 +67,7 @@ public:
 };
 
 /**
- * @brief Manages dungeon meta-tile tileset info, which consists of the fixed number of `MetaTile`s.
+ * @brief Manages dungeon meta-tile tileset info, which consists of the fixed number of `MetaTile`.
  */
 class MetaTileset
 {

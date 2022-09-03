@@ -27,8 +27,9 @@ Dungeon::Dungeon(iso_bn::random& rng)
     _testMapGen();
 #endif
 
+    // TODO: Move mini-map to seperate screen
     _miniMap.updateBgPos(_player);
-    _miniMap.setVisible(true);
+    // _miniMap.setVisible(true);
     _player.setVisible(true);
     _bg.setVisible(true);
 }

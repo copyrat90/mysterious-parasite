@@ -31,6 +31,7 @@ namespace mp::game
 
 class DungeonFloor;
 class MetaTileset;
+class ShadowTileset;
 
 /**
  * @brief Manages dungeon background scrolling with tileset.
@@ -44,12 +45,29 @@ public:
 
 private:
     const MetaTileset* _metaTileset;
+    const ShadowTileset& _shadowTileset;
 
-    bn::regular_bg_map_cell _cells[CELLS_COUNT];
-    bn::regular_bg_map_item _mapItem;
-    bn::regular_bg_item _bgItem;
-    bn::regular_bg_ptr _bg;
-    bn::regular_bg_map_ptr _bgMap;
+    bn::regular_bg_map_cell _dunCells[CELLS_COUNT];
+    bn::regular_bg_map_cell _shadowCells[CELLS_COUNT];
+    bn::regular_bg_map_cell _darkCells[CELLS_COUNT];
+
+    // dungeon tiles, including walls and floors.
+    bn::regular_bg_map_item _dunMapItem;
+    bn::regular_bg_item _dunBgItem;
+    bn::regular_bg_ptr _dunBg;
+    bn::regular_bg_map_ptr _dunBgMap;
+
+    // dim shadow, with blending enabled.
+    bn::regular_bg_map_item _shadowMapItem;
+    bn::regular_bg_item _shadowBgItem;
+    bn::regular_bg_ptr _shadowBg;
+    bn::regular_bg_map_ptr _shadowBgMap;
+
+    // dark (pitch black) undiscovered area.
+    bn::regular_bg_map_item _darkMapItem;
+    bn::regular_bg_item _darkBgItem;
+    bn::regular_bg_ptr _darkBg;
+    bn::regular_bg_map_ptr _darkBgMap;
 
     bool _cellsReloadRequired = false;
 

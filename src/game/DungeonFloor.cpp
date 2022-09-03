@@ -17,19 +17,13 @@
 namespace mp::game
 {
 
-namespace
-{
-constexpr s32 FLOOR_WIDTH = consts::DUNGEON_FLOOR_SIZE.width();
-constexpr s32 FLOOR_HEIGHT = consts::DUNGEON_FLOOR_SIZE.height();
-} // namespace
-
-DungeonFloor::DungeonFloor() : _seeds({0, 0, 0})
+DungeonFloor::DungeonFloor() : _seeds({0, 0, 0}), _board{}, _brightnesses{}, _discoverBoard{}
 {
 }
 
 auto DungeonFloor::getFloorTypeOf(s32 x, s32 y) const -> Type
 {
-    if (x < 0 || y < 0 || x >= FLOOR_WIDTH || y >= FLOOR_HEIGHT)
+    if (x < 0 || y < 0 || x >= COLUMNS || y >= ROWS)
         return Type::WALL;
 
     return _board[y][x];
@@ -58,6 +52,72 @@ auto DungeonFloor::getNeighborsOf(s32 x, s32 y) const -> Neighbor3x3
 auto DungeonFloor::getNeighborsOf(const BoardPos& pos) const -> Neighbor3x3
 {
     return getNeighborsOf(pos.x, pos.y);
+}
+
+s8 DungeonFloor::getBrightnessOf(s32 x, s32 y) const
+{
+    if (x < 0 || y < 0 || x >= COLUMNS || y >= ROWS)
+        return 0;
+
+    return _brightnesses[y][x];
+}
+
+s8 DungeonFloor::getBrightnessOf(const BoardPos& pos) const
+{
+    return getBrightnessOf(pos.x, pos.y);
+}
+
+auto DungeonFloor::getNeighborBrightnessOf(s32 x, s32 y) const -> NeighborBrightness3x3
+{
+    NeighborBrightness3x3 result;
+    for (s32 iy = 0; iy < 3; ++iy)
+    {
+        const s32 py = y + iy - 1;
+        for (s32 ix = 0; ix < 3; ++ix)
+        {
+            const s32 px = x + ix - 1;
+            result[iy][ix] = getBrightnessOf(px, py);
+        }
+    }
+    return result;
+}
+
+auto DungeonFloor::getNeighborBrightnessOf(const BoardPos& pos) const -> NeighborBrightness3x3
+{
+    return getNeighborBrightnessOf(pos.x, pos.y);
+}
+
+bool DungeonFloor::getDiscoverOf(s32 x, s32 y) const
+{
+    if (x < 0 || y < 0 || x >= COLUMNS || y >= ROWS)
+        return true;
+
+    return _discoverBoard[y][x];
+}
+
+bool DungeonFloor::getDiscoverOf(const BoardPos& pos) const
+{
+    return getDiscoverOf(pos.x, pos.y);
+}
+
+auto DungeonFloor::getNeighborDiscoverOf(s32 x, s32 y) const -> NeighborDiscover3x3
+{
+    NeighborDiscover3x3 result;
+    for (s32 iy = 0; iy < 3; ++iy)
+    {
+        const s32 py = y + iy - 1;
+        for (s32 ix = 0; ix < 3; ++ix)
+        {
+            const s32 px = x + ix - 1;
+            result[iy][ix] = getDiscoverOf(px, py);
+        }
+    }
+    return result;
+}
+
+auto DungeonFloor::getNeighborDiscoverOf(const BoardPos& pos) const -> NeighborDiscover3x3
+{
+    return getNeighborDiscoverOf(pos.x, pos.y);
 }
 
 void DungeonFloor::generate(iso_bn::random& rng)
