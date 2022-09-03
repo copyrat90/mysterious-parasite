@@ -61,7 +61,7 @@ public:
 
     void update(const DungeonFloor&, const mob::Monster& player);
 
-    void redrawAll();
+    void redrawAll(const DungeonFloor&, const mob::Monster& player);
 
     void startBgScroll(Direction9);
     bool isBgScrollOngoing() const;

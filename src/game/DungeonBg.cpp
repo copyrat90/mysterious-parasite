@@ -25,6 +25,11 @@
 namespace mp::game
 {
 
+namespace
+{
+constexpr bn::fixed_point BG_SIZE_HALF = {DungeonBg::COLUMNS * 8 / 2, DungeonBg::ROWS * 8 / 2};
+}
+
 // TODO: Pass MetaTilesetKind parameter, and init `_metaTileset` with it.
 DungeonBg::DungeonBg(const bn::camera_ptr& camera)
     : _metaTileset(&MetaTileset::fromKind(MetaTilesetKind::PLACEHOLDER)), _cells{},
@@ -45,10 +50,6 @@ void DungeonBg::update(const DungeonFloor& dungeonFloor, const mob::Monster& pla
         _cellsReloadRequired = false;
         _bgMap.reload_cells_ref();
     }
-}
-
-void DungeonBg::redrawAll()
-{
 }
 
 bool DungeonBg::isBgScrollOngoing() const
@@ -172,17 +173,52 @@ static bn::point _convertPosToCellPos(const bn::fixed_point& point)
     return result;
 }
 
+void DungeonBg::redrawAll(const DungeonFloor& dungeonFloor, const mob::Monster& player)
+{
+    using Neighbor3x3 = DungeonFloor::Neighbor3x3;
+
+    _cellsReloadRequired = true;
+
+    auto camRect = _getCamRect(_getCamera().position());
+    const BoardPos& playerBoardPos = player.getBoardPos();
+
+    auto topLeftCell = _convertPosToCellPos(_clampedPosToBg(camRect.top_left() + BG_SIZE_HALF));
+    auto bottomRightCell = _convertPosToCellPos(_clampedPosToBg(camRect.bottom_right() + BG_SIZE_HALF));
+
+    s32 updatedTileCount = 0;
+    // from left-top to bottom-right tiles on screen
+    for (s32 y = topLeftCell.y();; y = (y + 1) % ROWS)
+    {
+        for (s32 x = topLeftCell.x();; x = (x + 1) % COLUMNS)
+        {
+            auto& cell = _cells[_mapItem.cell_index(x, y)];
+            // find the current board pos of this cell's meta-tile.
+            BoardPos metaTilePos = playerBoardPos + BoardPos{(s8)(-8 + (updatedTileCount % COLUMNS + 1) / 2),
+                                                             (s8)(-5 + updatedTileCount / (COLUMNS * 2))};
+            // get the neighbors of the meta-tile
+            const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(metaTilePos);
+            // get the right tile within the meta-tile, and assign it to current cell.
+            cell =
+                _metaTileset->getCell(neighbors, (updatedTileCount % 2 == 0 ? 1 : 0), updatedTileCount / COLUMNS % 2);
+
+            ++updatedTileCount;
+            if (x == bottomRightCell.x())
+                break;
+        }
+        if (y == bottomRightCell.y())
+            break;
+    }
+    BN_ASSERT(updatedTileCount == 22 * COLUMNS, "updatedTileCount is ", updatedTileCount, ", instead of ",
+              22 * COLUMNS);
+}
+
 void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeonFloor, const mob::Monster& player)
 {
-    // BN_ERROR("WIP: redraw scrolled cells");
-
     BN_ASSERT(0 <= scrollPhase && scrollPhase < 2, "Invalid scrollPhase(", scrollPhase, ")");
     _cellsReloadRequired = true;
 
-    constexpr bn::fixed_point BG_SIZE_HALF = bn::fixed_point{COLUMNS * 8 / 2, ROWS * 8 / 2};
-
     auto camRect = _getCamRect(_getCamera().position());
-    const BoardPos playerBoardPos = player.getBoardPos();
+    const BoardPos& playerBoardPos = player.getBoardPos();
 
     // TODO: Clean up messy & copy-pasta code
 
@@ -198,17 +234,18 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
         const s32 startCellY = _convertPosToCellPos(_clampedPosToBg(camRect.top_right() + BG_SIZE_HALF)).y();
         const s32 endCellY = _convertPosToCellPos(_clampedPosToBg(camRect.bottom_right() + BG_SIZE_HALF)).y();
         s32 updatedTileCount = 0;
-        for (s32 y = startCellY;; y = (y + 1) % ROWS, ++updatedTileCount)
+        for (s32 y = startCellY;; y = (y + 1) % ROWS)
         {
             auto& cell = _cells[_mapItem.cell_index(x, y)];
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(
                 playerBoardPos + BoardPos{(s8)(scrollPhase == 1 ? 8 : 7), (s8)(-5 + updatedTileCount / 2)});
             cell = _metaTileset->getCell(neighbors, (scrollPhase == 0 ? 1 : 0), updatedTileCount % 2);
 
+            ++updatedTileCount;
             if (y == endCellY)
                 break;
         }
-        BN_ASSERT(updatedTileCount + 1 == 22, "updatedTileCount+1 is ", updatedTileCount + 1, ", instead of 22");
+        BN_ASSERT(updatedTileCount == 22, "updatedTileCount is ", updatedTileCount, ", instead of 22");
     }
     break;
     // update the left column
@@ -217,17 +254,18 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
         const s32 startCellY = _convertPosToCellPos(_clampedPosToBg(camRect.top_left() + BG_SIZE_HALF)).y();
         const s32 endCellY = _convertPosToCellPos(_clampedPosToBg(camRect.bottom_left() + BG_SIZE_HALF)).y();
         s32 updatedTileCount = 0;
-        for (s32 y = startCellY;; y = (y + 1) % ROWS, ++updatedTileCount)
+        for (s32 y = startCellY;; y = (y + 1) % ROWS)
         {
             auto& cell = _cells[_mapItem.cell_index(x, y)];
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(
                 playerBoardPos + BoardPos{(s8)(scrollPhase == 1 ? -8 : -7), (s8)(-5 + updatedTileCount / 2)});
             cell = _metaTileset->getCell(neighbors, (scrollPhase == 0 ? 0 : 1), updatedTileCount % 2);
 
+            ++updatedTileCount;
             if (y == endCellY)
                 break;
         }
-        BN_ASSERT(updatedTileCount + 1 == 22, "updatedTileCount+1 is ", updatedTileCount + 1, ", instead of 22");
+        BN_ASSERT(updatedTileCount == 22, "updatedTileCount is ", updatedTileCount, ", instead of 22");
     }
     break;
     // update the top row
@@ -236,17 +274,18 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
         const s32 startCellX = _convertPosToCellPos(_clampedPosToBg(camRect.top_left() + BG_SIZE_HALF)).x();
         const s32 endCellX = _convertPosToCellPos(_clampedPosToBg(camRect.top_right() + BG_SIZE_HALF)).x();
         s32 updatedTileCount = 0;
-        for (s32 x = startCellX;; x = (x + 1) % COLUMNS, ++updatedTileCount)
+        for (s32 x = startCellX;; x = (x + 1) % COLUMNS)
         {
             auto& cell = _cells[_mapItem.cell_index(x, y)];
             const Neighbor3x3 neighbors =
                 dungeonFloor.getNeighborsOf(playerBoardPos + BoardPos{(s8)(-8 + (updatedTileCount + 1) / 2), -5});
             cell = _metaTileset->getCell(neighbors, (updatedTileCount + 1) % 2, (scrollPhase == 0 ? 1 : 0));
 
+            ++updatedTileCount;
             if (x == endCellX)
                 break;
         }
-        BN_ASSERT(updatedTileCount + 1 == 32, "updatedTileCount+1 is ", updatedTileCount + 1, ", instead of 32");
+        BN_ASSERT(updatedTileCount == 32, "updatedTileCount is ", updatedTileCount, ", instead of 32");
     }
     break;
     // update the bottom row
@@ -255,17 +294,18 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
         const s32 startCellX = _convertPosToCellPos(_clampedPosToBg(camRect.bottom_left() + BG_SIZE_HALF)).x();
         const s32 endCellX = _convertPosToCellPos(_clampedPosToBg(camRect.bottom_right() + BG_SIZE_HALF)).x();
         s32 updatedTileCount = 0;
-        for (s32 x = startCellX;; x = (x + 1) % COLUMNS, ++updatedTileCount)
+        for (s32 x = startCellX;; x = (x + 1) % COLUMNS)
         {
             auto& cell = _cells[_mapItem.cell_index(x, y)];
             const Neighbor3x3 neighbors =
                 dungeonFloor.getNeighborsOf(playerBoardPos + BoardPos{(s8)(-8 + (updatedTileCount + 1) / 2), 5});
             cell = _metaTileset->getCell(neighbors, (updatedTileCount + 1) % 2, (scrollPhase == 0 ? 0 : 1));
 
+            ++updatedTileCount;
             if (x == endCellX)
                 break;
         }
-        BN_ASSERT(updatedTileCount + 1 == 32, "updatedTileCount+1 is ", updatedTileCount + 1, ", instead of 32");
+        BN_ASSERT(updatedTileCount == 32, "updatedTileCount is ", updatedTileCount, ", instead of 32");
     }
     break;
 

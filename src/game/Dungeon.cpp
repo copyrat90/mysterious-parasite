@@ -59,7 +59,7 @@ void Dungeon::_testMapGen()
     _miniMap.updateBgPos(_player);
 
     _floor.generate(_rng);
-    _bg.redrawAll();
+    _bg.redrawAll(_floor, _player);
     _miniMap.redrawAll(_floor);
 }
 #endif
