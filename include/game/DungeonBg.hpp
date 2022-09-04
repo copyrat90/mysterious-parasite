@@ -47,9 +47,9 @@ private:
     const MetaTileset* _metaTileset;
     const ShadowTileset& _shadowTileset;
 
-    bn::regular_bg_map_cell _dunCells[CELLS_COUNT];
-    bn::regular_bg_map_cell _shadowCells[CELLS_COUNT];
-    bn::regular_bg_map_cell _darkCells[CELLS_COUNT];
+    alignas(4) bn::regular_bg_map_cell _dunCells[CELLS_COUNT];
+    alignas(4) bn::regular_bg_map_cell _shadowCells[CELLS_COUNT];
+    alignas(4) bn::regular_bg_map_cell _darkCells[CELLS_COUNT];
 
     // dungeon tiles, including walls and floors.
     bn::regular_bg_map_item _dunMapItem;

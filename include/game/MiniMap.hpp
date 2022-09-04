@@ -39,7 +39,7 @@ public:
     static constexpr s32 CELLS_COUNT = consts::DUNGEON_FLOOR_CELLS_COUNT;
 
 private:
-    bn::affine_bg_map_cell _cells[CELLS_COUNT];
+    alignas(4) bn::affine_bg_map_cell _cells[CELLS_COUNT];
     bn::affine_bg_map_item _mapItem;
     bn::affine_bg_item _bgItem;
     bn::affine_bg_ptr _bg;
