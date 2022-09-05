@@ -18,6 +18,7 @@
 #include "game/DungeonFloor.hpp"
 #include "game/MiniMap.hpp"
 #include "game/mob/Monster.hpp"
+#include "game/mob/Player.hpp"
 #include "scene/SceneType.hpp"
 
 namespace iso_bn
@@ -59,7 +60,7 @@ private:
     DungeonBg _bg;
     MiniMap _miniMap;
 
-    mob::Monster _player;
+    mob::Player _player;
     bn::forward_list<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;
     bn::forward_list<item::Item, consts::DUNGEON_ITEM_MAX_COUNT> _items;
 };

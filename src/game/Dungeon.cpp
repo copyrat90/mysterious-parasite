@@ -20,8 +20,7 @@ namespace mp::game
 {
 
 Dungeon::Dungeon(iso_bn::random& rng)
-    : _rng(rng), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera),
-      _player(mob::MonsterSpecies::LEMMAS, {0, 0}, _camera)
+    : _rng(rng), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera), _player({0, 0}, _camera)
 {
 #ifdef MP_DEBUG
     _testMapGen();

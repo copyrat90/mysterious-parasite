@@ -8,23 +8,20 @@
 
 #pragma once
 
-#include "typedefs.hpp"
+#include "game/mob/Monster.hpp"
 
 namespace mp::game::mob
 {
 
-/**
- * @brief Monster species.
- * DO NOT change order, as indices are used for querying monster infos.
- */
-enum MonsterSpecies : u8
+class Player final : public Monster
 {
-    PLAYER = 0,
+public:
+    Player(const BoardPos&, const bn::camera_ptr&);
 
-    LEMMAS,
-
-    // total species count
-    TOTAL_SPECIES
+    /**
+     * @brief Take a turn, with the player's order.
+     */
+    void actPlayer(const MonsterAction& action);
 };
 
 } // namespace mp::game::mob

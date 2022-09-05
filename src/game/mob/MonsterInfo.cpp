@@ -23,10 +23,8 @@ namespace mp::game::mob
 namespace
 {
 
-constexpr s32 TOTAL_SPECIES = (s32)MonsterSpecies::TOTAL_SPECIES;
-
 constexpr MonsterInfo _monsterInfos[TOTAL_SPECIES] = {
-    MonsterInfo(MonsterSpecies::MISSING_NO, bn::sprite_items::spr_missing_no),
+    MonsterInfo(MonsterSpecies::PLAYER, bn::sprite_items::spr_lemmas),
     MonsterInfo(MonsterSpecies::LEMMAS, bn::sprite_items::spr_lemmas),
 };
 
@@ -34,7 +32,7 @@ constexpr MonsterInfo _monsterInfos[TOTAL_SPECIES] = {
 
 auto MonsterInfo::fromSpecies(MonsterSpecies species) -> const MonsterInfo&
 {
-    BN_ASSERT(0 <= (s32)species && (s32)species < TOTAL_SPECIES, "species(", (s32)species, ") OOB");
+    BN_ASSERT((s32)species < TOTAL_SPECIES, "species(", (s32)species, ") OOB");
     return _monsterInfos[(s32)species];
 }
 

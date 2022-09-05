@@ -25,13 +25,15 @@ class Dungeon;
 namespace mp::game::mob
 {
 
-enum class MonsterSpecies;
+enum MonsterSpecies : u8;
 class MonsterInfo;
 class MonsterAction;
 
-class Monster final
+class Monster
 {
 public:
+    virtual ~Monster() = default;
+
     Monster(MonsterSpecies, const BoardPos&, const bn::camera_ptr&);
 
     /**
@@ -44,11 +46,6 @@ public:
      */
     void actAI();
 
-    /**
-     * @brief Take a turn, with the player's order.
-     */
-    void actPlayer(const MonsterAction& action);
-
     bool isVisible() const;
     void setVisible(bool);
 
@@ -56,8 +53,8 @@ public:
     void setBoardPos(u8 x, u8 y);
     void setBoardPos(const BoardPos&);
 
-private:
-    void _act(MonsterAction& action);
+protected:
+    void _act(const MonsterAction& action);
 
 private:
     const MonsterInfo& _info;

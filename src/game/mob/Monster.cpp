@@ -30,26 +30,6 @@ void Monster::update(const Dungeon& dungeon)
     _animation.update(dungeon);
 }
 
-void Monster::actPlayer(const MonsterAction& action)
-{
-    switch (action.getType())
-    {
-        using Action = mob::MonsterAction::Type;
-        using AnimType = MonsterAnimation::Type;
-    case Action::CHANGE_DIRECTION:
-        _animation.startActions(AnimType::IDLE, action.getDirection());
-        break;
-    case Action::MOVE:
-        _animation.startActions(AnimType::WALK, action.getDirection());
-        _pos += action.getDirectionPos();
-        break;
-    case Action::DO_NOTHING:
-        break;
-    default:
-        BN_ERROR("Invalid MonsterAction::Type(", (s32)action.getType(), ")");
-    }
-}
-
 bool Monster::isVisible() const
 {
     return _animation.isVisible();
@@ -75,6 +55,26 @@ void Monster::setBoardPos(u8 x, u8 y)
 void Monster::setBoardPos(const BoardPos& pos)
 {
     setBoardPos(pos.x, pos.y);
+}
+
+void Monster::_act(const MonsterAction& action)
+{
+    switch (action.getType())
+    {
+        using Action = mob::MonsterAction::Type;
+        using AnimType = MonsterAnimation::Type;
+    case Action::CHANGE_DIRECTION:
+        _animation.startActions(AnimType::IDLE, action.getDirection());
+        break;
+    case Action::MOVE:
+        _animation.startActions(AnimType::WALK, action.getDirection());
+        _pos += action.getDirectionPos();
+        break;
+    case Action::DO_NOTHING:
+        break;
+    default:
+        BN_ERROR("Invalid MonsterAction::Type(", (s32)action.getType(), ")");
+    }
 }
 
 } // namespace mp::game::mob

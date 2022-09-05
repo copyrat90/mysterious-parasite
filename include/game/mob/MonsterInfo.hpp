@@ -10,10 +10,12 @@
 
 #include "bn_sprite_item.h"
 
+#include "typedefs.hpp"
+
 namespace mp::game::mob
 {
 
-enum class MonsterSpecies;
+enum MonsterSpecies : u8;
 
 namespace ai
 {
