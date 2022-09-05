@@ -37,6 +37,5 @@ inline constexpr s32 UI_BG_PRIORITY = 0;
 
 inline constexpr s32 DUNGEON_BG_Z_ORDER_WALLS = 50;
 inline constexpr s32 DUNGEON_BG_Z_ORDER_SHADOWS = 40;
-inline constexpr s32 DUNGEON_BG_Z_ORDER_DARK = 30;
 
 } // namespace mp::consts

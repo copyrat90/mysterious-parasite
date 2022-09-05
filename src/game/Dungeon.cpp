@@ -74,6 +74,8 @@ void Dungeon::_handleInput()
 #ifdef MP_DEBUG
     if (bn::keypad::select_held() && bn::keypad::l_pressed())
         _testMapGen();
+    if (bn::keypad::select_held() && bn::keypad::r_pressed())
+        _miniMap.setVisible(!_miniMap.isVisible());
 #endif
 
     // player movement (with mini-map movement)

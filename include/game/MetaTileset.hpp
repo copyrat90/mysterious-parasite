@@ -95,23 +95,27 @@ public:
     }
 
     /**
-     * @brief Get cell by neighbor floors & 2x2 bg tile coordinate.
+     * @brief Get cell by neighbor floors, their discover status & 2x2 bg tile coordinate.
      *
      * @param neighbors neighbor floors (center is self)
+     * @param discovers neighbors' discover status (center is self)
      * @param bgTileX column coordinate in single MetaTile [0..2)
      * @param bgTileY row coordinate in single MetaTile [0..2)
      * @return bn::regular_bg_map_cell
      */
-    auto getCell(const DungeonFloor::Neighbor3x3& neighbors, s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cell;
+    auto getCell(const DungeonFloor::Neighbor3x3& neighbors, const DungeonFloor::NeighborDiscover3x3& discovers,
+                 s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cell;
 
 private:
     /**
      * @brief Calculate meta-tile index by looking at the floor's neighbors.
      *
      * @param neighbors neighbor floors (center is self)
+     * @param discovers neighbors' discover status (center is self)
      * @return TileIndex
      */
-    static TileIndex _calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors);
+    static TileIndex _calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors,
+                                        const DungeonFloor::NeighborDiscover3x3& discovers);
 
 private:
     const bn::regular_bg_item& _bgItem;

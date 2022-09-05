@@ -29,13 +29,6 @@ auto ShadowTileset::getCell(const DungeonFloor::NeighborBrightness3x3& neighbors
     return _shadowTiles[idx].getCell(bgTileX, bgTileY);
 }
 
-auto ShadowTileset::getCell(const DungeonFloor::NeighborDiscover3x3& neighbors, s32 bgTileX, s32 bgTileY) const
-    -> bn::regular_bg_map_cell
-{
-    TileIndex idx = _calcDarkTileIndex(neighbors);
-    return _shadowTiles[idx].getCell(bgTileX, bgTileY);
-}
-
 auto ShadowTileset::_calcShadowTileIndex(const DungeonFloor::NeighborBrightness3x3& neighbors) -> TileIndex
 {
     // TODO: Replace with actual shadow graphics, instead of 2 tile placeholder.
@@ -43,17 +36,6 @@ auto ShadowTileset::_calcShadowTileIndex(const DungeonFloor::NeighborBrightness3
         return 0; // light
 
     return 1; // shadow
-}
-
-auto ShadowTileset::_calcDarkTileIndex(const DungeonFloor::NeighborDiscover3x3& neighbors) -> TileIndex
-{
-    return 0; // [TEST] light only
-
-    // // TODO: Replace with actual shadow graphics, instead of 2 tile placeholder.
-    // if (neighbors[1][1])
-    //     return 0; // light
-
-    // return 1; // dark
 }
 
 } // namespace mp::game

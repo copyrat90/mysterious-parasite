@@ -69,17 +69,6 @@ public:
     auto getCell(const DungeonFloor::NeighborBrightness3x3& neighbors, s32 bgTileX, s32 bgTileY) const
         -> bn::regular_bg_map_cell;
 
-    /**
-     * @brief Get cell by neighbors' discover status & 2x2 bg tile coordinate.
-     *
-     * @param neighbors neighbors' discover status (center is self)
-     * @param bgTileX column coordinate in single ShadowTile [0..2)
-     * @param bgTileY row coordinate in single ShadowTile [0..2)
-     * @return bn::regular_bg_map_cell
-     */
-    auto getCell(const DungeonFloor::NeighborDiscover3x3& neighbors, s32 bgTileX, s32 bgTileY) const
-        -> bn::regular_bg_map_cell;
-
 private:
     /**
      * @brief Calculate shadow-tile index by looking at the neighbors' brightness.
@@ -88,14 +77,6 @@ private:
      * @return TileIndex
      */
     static TileIndex _calcShadowTileIndex(const DungeonFloor::NeighborBrightness3x3& neighbors);
-
-    /**
-     * @brief Calculate dark-tile index by looking at the neighbors' discover status.
-     *
-     * @param neighbors neighbors' discover status (center is self)
-     * @return TileIndex
-     */
-    static TileIndex _calcDarkTileIndex(const DungeonFloor::NeighborDiscover3x3& neighbors);
 
 private:
     const bn::regular_bg_item& _bgItem;

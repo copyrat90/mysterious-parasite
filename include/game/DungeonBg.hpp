@@ -49,9 +49,9 @@ private:
 
     alignas(4) bn::regular_bg_map_cell _dunCells[CELLS_COUNT];
     alignas(4) bn::regular_bg_map_cell _shadowCells[CELLS_COUNT];
-    alignas(4) bn::regular_bg_map_cell _darkCells[CELLS_COUNT];
 
     // dungeon tiles, including walls and floors.
+    // this BG also deals with dark (pitch black) undiscovered area.
     bn::regular_bg_map_item _dunMapItem;
     bn::regular_bg_item _dunBgItem;
     bn::regular_bg_ptr _dunBg;
@@ -62,12 +62,6 @@ private:
     bn::regular_bg_item _shadowBgItem;
     bn::regular_bg_ptr _shadowBg;
     bn::regular_bg_map_ptr _shadowBgMap;
-
-    // dark (pitch black) undiscovered area.
-    bn::regular_bg_map_item _darkMapItem;
-    bn::regular_bg_item _darkBgItem;
-    bn::regular_bg_ptr _darkBg;
-    bn::regular_bg_map_ptr _darkBgMap;
 
     bool _cellsReloadRequired = false;
 

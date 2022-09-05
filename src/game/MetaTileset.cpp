@@ -41,18 +41,21 @@ auto MetaTile::getCell(s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cel
     return cells[bgTileY * COLUMNS + bgTileX];
 }
 
-auto MetaTileset::getCell(const DungeonFloor::Neighbor3x3& neighbors, s32 bgTileX, s32 bgTileY) const
+auto MetaTileset::getCell(const DungeonFloor::Neighbor3x3& neighbors,
+                          const DungeonFloor::NeighborDiscover3x3& discovers, s32 bgTileX, s32 bgTileY) const
     -> bn::regular_bg_map_cell
 {
-    TileIndex idx = _calcMetaTileIndex(neighbors);
+    TileIndex idx = _calcMetaTileIndex(neighbors, discovers);
     return _metaTiles[idx].getCell(bgTileX, bgTileY);
 }
 
-auto MetaTileset::_calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors) -> TileIndex
+auto MetaTileset::_calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors,
+                                     const DungeonFloor::NeighborDiscover3x3& discovers) -> TileIndex
 {
     using FloorType = DungeonFloor::Type;
 
     // TODO: load wall/floor variations, instead of default one.
+    // TODO: darken the floors when they are not discovered yet.
 
     // if center tile is a floor, just return the floor tile.
     if (neighbors[1][1] == FloorType::FLOOR)

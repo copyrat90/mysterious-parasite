@@ -35,7 +35,7 @@ constexpr bn::fixed_point BG_SIZE_HALF = {DungeonBg::COLUMNS * 8 / 2, DungeonBg:
 // TODO: Pass MetaTilesetKind parameter, and init `_metaTileset` with it.
 DungeonBg::DungeonBg(const bn::camera_ptr& camera)
     : _metaTileset(&MetaTileset::fromKind(MetaTilesetKind::PLACEHOLDER)),
-      _shadowTileset(ShadowTileset::get()), _dunCells{}, _shadowCells{}, _darkCells{},
+      _shadowTileset(ShadowTileset::get()), _dunCells{}, _shadowCells{},
       // dungeon bg init
       _dunMapItem(_dunCells[0], bn::size(DungeonBg::COLUMNS, DungeonBg::ROWS)),
       _dunBgItem(_metaTileset->getBgItem().tiles_item(), _metaTileset->getBgItem().palette_item(), _dunMapItem),
@@ -43,11 +43,7 @@ DungeonBg::DungeonBg(const bn::camera_ptr& camera)
       // shadow bg init
       _shadowMapItem(_shadowCells[0], bn::size(DungeonBg::COLUMNS, DungeonBg::ROWS)),
       _shadowBgItem(_shadowTileset.getBgItem().tiles_item(), _shadowTileset.getBgItem().palette_item(), _shadowMapItem),
-      _shadowBg(_shadowBgItem.create_bg(0, 0)), _shadowBgMap(_shadowBg.map()),
-      // dark bg init
-      _darkMapItem(_darkCells[0], bn::size(DungeonBg::COLUMNS, DungeonBg::ROWS)),
-      _darkBgItem(_shadowTileset.getBgItem().tiles_item(), _shadowTileset.getBgItem().palette_item(), _darkMapItem),
-      _darkBg(_darkBgItem.create_bg(0, 0)), _darkBgMap(_darkBg.map())
+      _shadowBg(_shadowBgItem.create_bg(0, 0)), _shadowBgMap(_shadowBg.map())
 {
     _initGraphics(camera);
 }
@@ -62,7 +58,6 @@ void DungeonBg::update(const DungeonFloor& dungeonFloor, const mob::Monster& pla
         _cellsReloadRequired = false;
         _dunBgMap.reload_cells_ref();
         _shadowBgMap.reload_cells_ref();
-        _darkBgMap.reload_cells_ref();
     }
 }
 
@@ -101,7 +96,6 @@ void DungeonBg::setVisible(bool isVisible)
 {
     _dunBg.set_visible(isVisible);
     _shadowBg.set_visible(isVisible);
-    _darkBg.set_visible(isVisible);
 }
 
 void DungeonBg::_initGraphics(const bn::camera_ptr& camera)
@@ -110,18 +104,15 @@ void DungeonBg::_initGraphics(const bn::camera_ptr& camera)
 
     _dunBg.set_priority(consts::DUNGEON_BG_PRIORITY);
     _shadowBg.set_priority(consts::DUNGEON_BG_PRIORITY);
-    _darkBg.set_priority(consts::DUNGEON_BG_PRIORITY);
 
     _dunBg.set_z_order(consts::DUNGEON_BG_Z_ORDER_WALLS);
     _shadowBg.set_z_order(consts::DUNGEON_BG_Z_ORDER_SHADOWS);
-    _darkBg.set_z_order(consts::DUNGEON_BG_Z_ORDER_DARK);
 
     _shadowBg.set_blending_enabled(true);
     bn::blending::set_transparency_alpha(0.5);
 
     _dunBg.set_camera(camera);
     _shadowBg.set_camera(camera);
-    _darkBg.set_camera(camera);
 }
 
 const bn::camera_ptr& DungeonBg::_getCamera() const
@@ -227,18 +218,15 @@ void DungeonBg::redrawAll(const DungeonFloor& dungeonFloor, const mob::Monster& 
                                                                    (s8)(-5 + updatedTileCount / (COLUMNS * 2))};
             // get the neighbors of the meta-tile
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(metaTilePos);
+            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             // get the right tile within the meta-tile, and assign it to current cell.
             const s32 bgTileX = (updatedTileCount % 2 == 0 ? 1 : 0);
             const s32 bgTileY = updatedTileCount / COLUMNS % 2;
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
 
             // do the same thing with shadow area.
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
             _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
-
-            // do the same thing with dark area.
-            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
-            _darkCells[_darkMapItem.cell_index(x, y)] = _shadowTileset.getCell(discovers, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (x == bottomRightCell.x())
@@ -279,14 +267,13 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
             const BoardPos metaTilePos =
                 playerBoardPos + BoardPos{(s8)(scrollPhase == 1 ? 8 : 7), (s8)(-5 + updatedTileCount / 2)};
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(metaTilePos);
+            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (scrollPhase == 0 ? 1 : 0);
             const s32 bgTileY = updatedTileCount % 2;
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
             _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
-            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
-            _darkCells[_darkMapItem.cell_index(x, y)] = _shadowTileset.getCell(discovers, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (y == endCellY)
@@ -306,14 +293,13 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
             const BoardPos metaTilePos =
                 playerBoardPos + BoardPos{(s8)(scrollPhase == 1 ? -8 : -7), (s8)(-5 + updatedTileCount / 2)};
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(metaTilePos);
+            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (scrollPhase == 0 ? 0 : 1);
             const s32 bgTileY = updatedTileCount % 2;
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
             _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
-            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
-            _darkCells[_darkMapItem.cell_index(x, y)] = _shadowTileset.getCell(discovers, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (y == endCellY)
@@ -332,14 +318,13 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
         {
             const BoardPos metaTilePos = playerBoardPos + BoardPos{(s8)(-8 + (updatedTileCount + 1) / 2), -5};
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(metaTilePos);
+            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (updatedTileCount + 1) % 2;
             const s32 bgTileY = (scrollPhase == 0 ? 1 : 0);
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
             _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
-            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
-            _darkCells[_darkMapItem.cell_index(x, y)] = _shadowTileset.getCell(discovers, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (x == endCellX)
@@ -358,14 +343,13 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
         {
             const BoardPos metaTilePos = playerBoardPos + BoardPos{(s8)(-8 + (updatedTileCount + 1) / 2), 5};
             const Neighbor3x3 neighbors = dungeonFloor.getNeighborsOf(metaTilePos);
+            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (updatedTileCount + 1) % 2;
             const s32 bgTileY = (scrollPhase == 0 ? 0 : 1);
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
             _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
-            const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
-            _darkCells[_darkMapItem.cell_index(x, y)] = _shadowTileset.getCell(discovers, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (x == endCellX)
