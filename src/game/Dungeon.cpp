@@ -19,16 +19,21 @@
 namespace mp::game
 {
 
-Dungeon::Dungeon(iso_bn::random& rng)
-    : _rng(rng), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera), _player({0, 0}, _camera)
+Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen)
+    : _rng(rng), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera), _hud(textGen),
+      _player({0, 0}, _camera, _hud)
 {
 #ifdef MP_DEBUG
     _testMapGen();
 #endif
 
+    _hud.setBelly(_player.getBelly().getCurrentBelly(), _player.getBelly().getMaxBelly());
+
     // TODO: Move mini-map to seperate screen
     _miniMap.updateBgPos(_player);
     // _miniMap.setVisible(true);
+
+    _hud.setVisible(true);
     _player.setVisible(true);
     _bg.setVisible(true);
 }

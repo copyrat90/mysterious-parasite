@@ -129,7 +129,8 @@ auto MetaTileset::_calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors,
         return 8; // bottom
 
     default:
-        BN_LOG("invalid neighbor wall flag(", wallFlags, ")");
+        // BN_LOG("invalid neighbor wall flag(", wallFlags, ")");
+        break;
     }
     return 0;
 }

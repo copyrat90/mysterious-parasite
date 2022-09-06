@@ -16,6 +16,7 @@
 #include "constants.hpp"
 #include "game/DungeonBg.hpp"
 #include "game/DungeonFloor.hpp"
+#include "game/Hud.hpp"
 #include "game/MiniMap.hpp"
 #include "game/mob/Monster.hpp"
 #include "game/mob/Player.hpp"
@@ -25,6 +26,10 @@ namespace iso_bn
 {
 class random;
 }
+namespace mp
+{
+class TextGen;
+}
 
 namespace mp::game
 {
@@ -32,7 +37,7 @@ namespace mp::game
 class Dungeon final
 {
 public:
-    Dungeon(iso_bn::random& rng);
+    Dungeon(iso_bn::random& rng, TextGen&);
 
     [[nodiscard]] auto update() -> bn::optional<scene::SceneType>;
 
@@ -64,6 +69,7 @@ private:
     DungeonFloor _floor;
     DungeonBg _bg;
     MiniMap _miniMap;
+    Hud _hud;
 
     mob::Player _player;
     bn::forward_list<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;

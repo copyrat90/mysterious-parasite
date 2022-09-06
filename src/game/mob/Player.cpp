@@ -28,8 +28,15 @@ Player::Player(const BoardPos& boardPos, const bn::camera_ptr& camera, Hud& hud)
 bool Player::actPlayer(const MonsterAction& action)
 {
     _act(action);
-    bool isAlive = _belly.progressTurn();
+    bool isAlive = true;
+    if (action.isSpendTurn())
+        isAlive = isAlive && _belly.progressTurn();
     return isAlive;
+}
+
+PlayerBelly& Player::getBelly()
+{
+    return _belly;
 }
 
 } // namespace mp::game::mob

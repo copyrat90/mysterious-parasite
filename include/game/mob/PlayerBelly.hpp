@@ -39,9 +39,9 @@ public:
     s32 getBellyDecreaseTurns() const;
     void setBellyDecreaseTurns(s32 turn);
 
-    s32 getBelly() const;
-    void addBelly(s32 amount);
-    void setBelly(s32 belly);
+    s32 getCurrentBelly() const;
+    void addCurrentBelly(s32 amount);
+    void setCurrentBelly(s32 belly);
 
     void resetBellyDecreaseCounter();
 
@@ -52,6 +52,8 @@ private:
      * @return `true` if clamp happened.
      */
     bool _clampBelly();
+
+    void _updateHud();
 
 private:
     Hud& _hud;

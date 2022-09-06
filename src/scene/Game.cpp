@@ -13,7 +13,7 @@
 namespace mp::scene
 {
 
-Game::Game(iso_bn::random& rng, TextGen& textGen) : _rng(rng), _dungeon(rng)
+Game::Game(iso_bn::random& rng, TextGen& textGen) : _rng(rng), _dungeon(rng, textGen)
 {
 }
 

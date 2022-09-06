@@ -32,6 +32,8 @@ public:
      */
     [[nodiscard]] bool actPlayer(const MonsterAction& action);
 
+    PlayerBelly& getBelly();
+
 private:
     PlayerBelly _belly;
 };
