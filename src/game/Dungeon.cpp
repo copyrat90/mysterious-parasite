@@ -35,7 +35,7 @@ Dungeon::Dungeon(iso_bn::random& rng)
 
 auto Dungeon::update() -> bn::optional<scene::SceneType>
 {
-    _handleInput();
+    bool isPlayerAlive = _progressTurn();
 
     _player.update(*this);
     _miniMap.update();
@@ -44,6 +44,8 @@ auto Dungeon::update() -> bn::optional<scene::SceneType>
         _updateBgScroll();
     _bg.update(_floor, _player);
 
+    // TODO: Return the GameOver scene when player dies.
+    // Or, we do the game over animation first, and return it later.
     return bn::nullopt;
 }
 
@@ -64,11 +66,11 @@ void Dungeon::_testMapGen()
 }
 #endif
 
-void Dungeon::_handleInput()
+bool Dungeon::_progressTurn()
 {
     // Don't receive any input if the turn is ongoing.
     if (isTurnOngoing())
-        return;
+        return true;
 
 #ifdef MP_DEBUG
     if (bn::keypad::select_held() && bn::keypad::l_pressed())
@@ -76,6 +78,8 @@ void Dungeon::_handleInput()
     if (bn::keypad::select_held() && bn::keypad::r_pressed())
         _miniMap.setVisible(!_miniMap.isVisible());
 #endif
+
+    bool isPlayerAlive = true;
 
     // player movement (with mini-map movement)
     if (bn::keypad::left_held() || bn::keypad::right_held() || bn::keypad::up_held() || bn::keypad::down_held())
@@ -95,17 +99,21 @@ void Dungeon::_handleInput()
             // if player can move to the input direction, move to there.
             if (_canMoveTo(_player, candidatePlayerPos))
             {
-                _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
+                isPlayerAlive =
+                    isPlayerAlive && _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
                 _miniMap.updateBgPos(_player);
                 _startBgScroll(inputDirection);
             }
             // if not, just change the player's direction without moving.
             else
             {
-                _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::CHANGE_DIRECTION));
+                isPlayerAlive = isPlayerAlive &&
+                                _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::CHANGE_DIRECTION));
             }
         }
     }
+
+    return isPlayerAlive;
 }
 
 void Dungeon::_startBgScroll(Direction9 moveDir)

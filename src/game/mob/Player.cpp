@@ -13,14 +13,23 @@
 namespace mp::game::mob
 {
 
-Player::Player(const BoardPos& boardPos, const bn::camera_ptr& camera)
-    : Monster(MonsterSpecies::PLAYER, boardPos, camera)
+namespace
+{
+constexpr s32 INITIAL_MAX_BELLY = 100;
+constexpr s32 INITIAL_BELLY_DECREASE_TURNS = 10;
+} // namespace
+
+Player::Player(const BoardPos& boardPos, const bn::camera_ptr& camera, Hud& hud)
+    : Monster(MonsterSpecies::PLAYER, boardPos, camera),
+      _belly(INITIAL_MAX_BELLY, INITIAL_MAX_BELLY, INITIAL_BELLY_DECREASE_TURNS, hud)
 {
 }
 
-void Player::actPlayer(const MonsterAction& action)
+bool Player::actPlayer(const MonsterAction& action)
 {
     _act(action);
+    bool isAlive = _belly.progressTurn();
+    return isAlive;
 }
 
 } // namespace mp::game::mob

@@ -39,7 +39,12 @@ public:
     bool isTurnOngoing() const;
 
 private:
-    void _handleInput();
+    /**
+     * @brief Receive user input, and progress a turn.
+     *
+     * @return `true` if player is still alive after the turn.
+     */
+    [[nodiscard]] bool _progressTurn();
 
     void _startBgScroll(Direction9 moveDir);
     bool _updateBgScroll();
