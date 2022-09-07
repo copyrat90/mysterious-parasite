@@ -10,15 +10,13 @@
 #include "bn_bg_palettes.h"
 #include "bn_core.h"
 #include "bn_optional.h"
-#include "bn_sprite_text_generator.h"
 #include "bn_unique_ptr.h"
 
 #include "iso_bn_random.h"
 
+#include "TextGen.hpp"
 #include "debug/DebugView.hpp"
 #include "scene/Game.hpp"
-
-#include "galmuri9_sprite_font.h"
 
 using namespace mp;
 
@@ -31,7 +29,7 @@ int main()
     bn::unique_ptr<scene::IScene> scene;
     bn::optional<scene::SceneType> nextScene;
 
-    bn::sprite_text_generator textGen(galmuri9_sprite_font);
+    TextGen textGen;
 
     // TODO: 세이브로부터 seed 불러오기
     iso_bn::random rng;

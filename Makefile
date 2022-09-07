@@ -50,7 +50,7 @@ USERLIBS    :=
 USERBUILD   :=  
 
 ### gba-free-fonts font generator ###
-FONTS       :=  fonts/fonts/galmuri9
+FONTS       :=  fonts/fonts/galmuri7 fonts/fonts/galmuri9
 TEXTS       :=  include/texts.hpp
 EXTTOOL     :=  $(PYTHON) fonts/tools/butano/butano_fonts_tool.py --build=$(BUILD) --fonts="$(FONTS)" --texts="$(TEXTS)"
 

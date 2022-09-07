@@ -11,8 +11,8 @@
 #include "bn_core.h"
 #include "bn_format.h"
 #include "bn_keypad.h"
-#include "bn_sprite_text_generator.h"
 
+#include "TextGen.hpp"
 #include "texts.hpp"
 
 namespace mp::debug
@@ -28,7 +28,7 @@ constexpr s32 X_POS = -115;
 constexpr s32 IWRAM_BYTES = 32'768, EWRAM_BYTES = 262'144;
 } // namespace
 
-DebugView::DebugView(bn::sprite_text_generator& textGen) : _textGen(textGen)
+DebugView::DebugView(TextGen& textGen) : _textGen(textGen)
 {
     _resetCounter();
 }
@@ -59,11 +59,14 @@ void DebugView::update()
         const s32 iwFree = IWRAM_BYTES - bn::memory::used_static_iwram() - bn::memory::used_stack_iwram();
         const s32 ewFree = bn::memory::available_alloc_ewram();
 
-        _textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
-        _textGen.generate(X_POS, -60, bn::format<10>("cpu {}%", cpu), _usageSprites);
-        _textGen.generate(X_POS, -50, bn::format<10>("vbl {}%", vblank), _usageSprites);
-        _textGen.generate(X_POS, -40, bn::format<17>("  iw {}% {}", iwUse, iwFree), _usageSprites);
-        _textGen.generate(X_POS, -30, bn::format<18>("  ew {}% {}", ewUse, ewFree), _usageSprites);
+        _textGen.gen(X_POS, -60, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9, bn::format<10>("cpu {}%", cpu),
+                     _usageSprites);
+        _textGen.gen(X_POS, -50, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9,
+                     bn::format<10>("vbl {}%", vblank), _usageSprites);
+        _textGen.gen(X_POS, -40, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9,
+                     bn::format<17>("  iw {}% {}", iwUse, iwFree), _usageSprites);
+        _textGen.gen(X_POS, -30, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9,
+                     bn::format<18>("  ew {}% {}", ewUse, ewFree), _usageSprites);
 
         _resetCounter();
     }
@@ -78,8 +81,8 @@ void DebugView::_setVisible(bool isVisible)
 {
     if (isVisible)
     {
-        _textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
-        _textGen.generate(X_POS, -70, "     use / free", _headingSprites);
+        _textGen.gen(X_POS, -70, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9, "     use / free",
+                     _headingSprites);
     }
     else
     {

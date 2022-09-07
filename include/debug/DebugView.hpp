@@ -14,9 +14,9 @@
 
 #include "typedefs.hpp"
 
-namespace bn
+namespace mp
 {
-class sprite_text_generator;
+class TextGen;
 }
 
 namespace mp::debug
@@ -27,7 +27,7 @@ namespace mp::debug
 class DebugView
 {
 public:
-    DebugView(bn::sprite_text_generator& textGen);
+    DebugView(TextGen& textGen);
 
     void update();
 
@@ -38,7 +38,7 @@ private:
     void _resetCounter();
 
 private:
-    bn::sprite_text_generator& _textGen;
+    TextGen& _textGen;
     bn::vector<bn::sprite_ptr, 2> _headingSprites;
     bn::vector<bn::sprite_ptr, 16> _usageSprites;
 

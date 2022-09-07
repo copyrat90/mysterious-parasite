@@ -12,9 +12,9 @@
 
 #include "game/Dungeon.hpp"
 
-namespace bn
+namespace mp
 {
-class sprite_text_generator;
+class TextGen;
 }
 
 namespace iso_bn
@@ -28,7 +28,7 @@ namespace mp::scene
 class Game final : public IScene
 {
 public:
-    Game(iso_bn::random& rng, bn::sprite_text_generator& textGen);
+    Game(iso_bn::random& rng, TextGen& textGen);
 
     [[nodiscard]] bn::optional<SceneType> update() final;
 

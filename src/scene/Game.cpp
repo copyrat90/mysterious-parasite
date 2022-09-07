@@ -8,14 +8,12 @@
 
 #include "scene/Game.hpp"
 
-#include "bn_sprite_text_generator.h"
-
 #include "texts.hpp"
 
 namespace mp::scene
 {
 
-Game::Game(iso_bn::random& rng, bn::sprite_text_generator& textGen) : _rng(rng), _dungeon(rng)
+Game::Game(iso_bn::random& rng, TextGen& textGen) : _rng(rng), _dungeon(rng)
 {
 }
 
