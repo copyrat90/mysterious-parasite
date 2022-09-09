@@ -22,20 +22,11 @@ TextGen::TextGen()
 {
 }
 
-void TextGen::gen(bn::fixed x, bn::fixed y, Alignment alignment, FontKind fontKind, const bn::string_view& text,
-                  bn::ivector<bn::sprite_ptr>& outSprites)
+auto TextGen::get(FontKind fontKind) -> bn::sprite_text_generator&
 {
     BN_ASSERT(0 <= fontKind && fontKind < TOTAL_FONTS, "Invalid fontKind(", fontKind, ")");
 
-    auto& textGen = _textGens[fontKind];
-    textGen.set_alignment(alignment);
-    textGen.generate(x, y, text, outSprites);
-}
-
-void TextGen::gen(const bn::fixed_point& position, Alignment alignment, FontKind fontKind, const bn::string_view& text,
-                  bn::ivector<bn::sprite_ptr>& outSprites)
-{
-    gen(position.x(), position.y(), alignment, fontKind, text, outSprites);
+    return _textGens[fontKind];
 }
 
 } // namespace mp

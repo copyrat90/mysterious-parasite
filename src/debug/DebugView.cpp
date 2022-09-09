@@ -59,14 +59,12 @@ void DebugView::update()
         const s32 iwFree = IWRAM_BYTES - bn::memory::used_static_iwram() - bn::memory::used_stack_iwram();
         const s32 ewFree = bn::memory::available_alloc_ewram();
 
-        _textGen.gen(X_POS, -60, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9, bn::format<10>("cpu {}%", cpu),
-                     _usageSprites);
-        _textGen.gen(X_POS, -50, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9,
-                     bn::format<10>("vbl {}%", vblank), _usageSprites);
-        _textGen.gen(X_POS, -40, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9,
-                     bn::format<17>("  iw {}% {}", iwUse, iwFree), _usageSprites);
-        _textGen.gen(X_POS, -30, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9,
-                     bn::format<18>("  ew {}% {}", ewUse, ewFree), _usageSprites);
+        auto& textGen = _textGen.get(TextGen::FontKind::GALMURI_9);
+        textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
+        textGen.generate(X_POS, -60, bn::format<10>("cpu {}%", cpu), _usageSprites);
+        textGen.generate(X_POS, -50, bn::format<10>("vbl {}%", vblank), _usageSprites);
+        textGen.generate(X_POS, -40, bn::format<17>("  iw {}% {}", iwUse, iwFree), _usageSprites);
+        textGen.generate(X_POS, -30, bn::format<18>("  ew {}% {}", ewUse, ewFree), _usageSprites);
 
         _resetCounter();
     }
@@ -81,8 +79,9 @@ void DebugView::_setVisible(bool isVisible)
 {
     if (isVisible)
     {
-        _textGen.gen(X_POS, -70, TextGen::Alignment::LEFT, TextGen::FontKind::GALMURI_9, "     use / free",
-                     _headingSprites);
+        auto& textGen = _textGen.get(TextGen::FontKind::GALMURI_9);
+        textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
+        textGen.generate(X_POS, -70, "     use / free", _headingSprites);
     }
     else
     {

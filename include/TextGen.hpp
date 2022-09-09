@@ -10,6 +10,9 @@
 
 #include "bn_array.h"
 #include "bn_sprite_text_generator.h"
+#include "bn_utility.h"
+
+#include "typedefs.hpp"
 
 namespace mp
 {
@@ -17,8 +20,6 @@ namespace mp
 class TextGen
 {
 public:
-    using Alignment = bn::sprite_text_generator::alignment_type;
-
     enum FontKind
     {
         GALMURI_7,
@@ -30,10 +31,7 @@ public:
 public:
     TextGen();
 
-    void gen(bn::fixed x, bn::fixed y, Alignment, FontKind, const bn::string_view& text,
-             bn::ivector<bn::sprite_ptr>& outSprites);
-    void gen(const bn::fixed_point& position, Alignment, FontKind, const bn::string_view& text,
-             bn::ivector<bn::sprite_ptr>& outSprites);
+    auto get(FontKind) -> bn::sprite_text_generator&;
 
 private:
     bn::array<bn::sprite_text_generator, TOTAL_FONTS> _textGens;
