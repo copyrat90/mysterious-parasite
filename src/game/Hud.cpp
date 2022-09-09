@@ -18,6 +18,7 @@
 #include "TextGen.hpp"
 #include "constants.hpp"
 #include "game/mob/PlayerBelly.hpp"
+#include "texts.hpp"
 
 #include "bn_sprite_items_spr_belly_gauge.h"
 
@@ -48,7 +49,7 @@ constexpr bn::fixed_point BELLY_TEXT_POS = {
 };
 
 constexpr bn::fixed_point BELLY_GAUGE_POS = {
-    141 - bn::display::width() / 2 + bn::sprite_items::spr_belly_gauge.shape_size().width() / 2,
+    145 - bn::display::width() / 2 + bn::sprite_items::spr_belly_gauge.shape_size().width() / 2,
     0 - bn::display::height() / 2 + bn::sprite_items::spr_belly_gauge.shape_size().height() / 2,
 };
 
@@ -56,15 +57,33 @@ constexpr s32 BELLY_FALLBACK_VALUE = 100;
 
 } // namespace
 
+HudObserveSettings::HudObserveSettings(Hud& hud, Settings& settings) : SettingsObserver(settings), _hud(hud)
+{
+}
+
+void HudObserveSettings::onLangChange([[maybe_unused]] Settings::Language prevLang, Settings::Language newLang)
+{
+    if (_hud.isVisible())
+    {
+        _hud._bellyMiscSprites.clear();
+
+        auto& textGen = _hud._textGen.get(TextGen::FontKind::GALMURI_7);
+        textGen.set_alignment(bn::sprite_text_generator::alignment_type::RIGHT);
+        textGen.generate(BELLY_SLASH_POS, "/", _hud._bellyMiscSprites);
+        textGen.generate(BELLY_TEXT_POS, texts::BELLY[newLang], _hud._bellyMiscSprites);
+    }
+}
+
 static s32 _getBellyGraphicsIndexFromBelly(s32 currentBelly, s32 maxBelly)
 {
     return (bn::fixed(currentBelly) / maxBelly * 32).round_integer();
 }
 
-Hud::Hud(TextGen& textGen)
-    : _textGen(textGen), _currentBelly(BELLY_FALLBACK_VALUE), _maxBelly(BELLY_FALLBACK_VALUE),
+Hud::Hud(TextGen& textGen, Settings& settings)
+    : _textGen(textGen), _settings(settings), _currentBelly(BELLY_FALLBACK_VALUE), _maxBelly(BELLY_FALLBACK_VALUE),
       _bellyGaugeGraphicsIndex(_getBellyGraphicsIndexFromBelly(_currentBelly, _maxBelly)),
-      _bellyGaugeSprite(bn::sprite_items::spr_belly_gauge.create_sprite(BELLY_GAUGE_POS, _bellyGaugeGraphicsIndex))
+      _bellyGaugeSprite(bn::sprite_items::spr_belly_gauge.create_sprite(BELLY_GAUGE_POS, _bellyGaugeGraphicsIndex)),
+      _settingsObserver(*this, settings)
 {
     _initGraphics();
 }
@@ -88,7 +107,7 @@ void Hud::setVisible(bool newVisible)
             if (_bellyMiscSprites.empty())
             {
                 textGen.generate(BELLY_SLASH_POS, "/", _bellyMiscSprites);
-                textGen.generate(BELLY_TEXT_POS, "Belly", _bellyMiscSprites);
+                textGen.generate(BELLY_TEXT_POS, texts::BELLY[_settings.getLang()], _bellyMiscSprites);
             }
             else
             {

@@ -19,9 +19,9 @@
 namespace mp::game
 {
 
-Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen)
-    : _rng(rng), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera), _hud(textGen),
-      _player({0, 0}, _camera, _hud)
+Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen, Settings& settings)
+    : _rng(rng), _settings(settings), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera),
+      _hud(textGen, settings), _player({0, 0}, _camera, _hud)
 {
 #ifdef MP_DEBUG
     _testMapGen();
@@ -82,6 +82,8 @@ bool Dungeon::_progressTurn()
         _testMapGen();
     if (bn::keypad::select_held() && bn::keypad::r_pressed())
         _miniMap.setVisible(!_miniMap.isVisible());
+    if (bn::keypad::select_held() && bn::keypad::right_pressed())
+        _settings.setLang((_settings.getLang() == Settings::ENGLISH) ? Settings::KOREAN : Settings::ENGLISH);
 #endif
 
     bool isPlayerAlive = true;

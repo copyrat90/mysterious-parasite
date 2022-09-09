@@ -37,7 +37,7 @@ namespace mp::game
 class Dungeon final
 {
 public:
-    Dungeon(iso_bn::random& rng, TextGen&);
+    Dungeon(iso_bn::random& rng, TextGen&, Settings&);
 
     [[nodiscard]] auto update() -> bn::optional<scene::SceneType>;
 
@@ -63,6 +63,8 @@ private:
 
 private:
     iso_bn::random& _rng;
+    Settings& _settings;
+
     bn::camera_ptr _camera;
     bn::optional<bn::camera_move_to_action> _camMoveAction;
 

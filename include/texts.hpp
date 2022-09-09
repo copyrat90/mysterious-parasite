@@ -15,12 +15,16 @@
 
 #pragma once
 
+#include "bn_array.h"
 #include "bn_string_view.h"
+
+#include "Settings.hpp"
 
 namespace mp::texts
 {
 
-inline constexpr bn::string_view KOR_TEST_STR = "다람쥐 헌 쳇바퀴에 타고파.";
-inline constexpr bn::string_view ENG_TEST_STR = "The quick brown fox jumps over a lazy dog.";
+using LangTexts = bn::array<bn::string_view, Settings::TOTAL_LANGUAGES>;
+
+inline constexpr LangTexts BELLY = {"Belly", "만복도"};
 
 } // namespace mp::texts

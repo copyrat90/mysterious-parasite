@@ -28,7 +28,7 @@ namespace mp::scene
 class Game final : public IScene
 {
 public:
-    Game(iso_bn::random& rng, TextGen& textGen);
+    Game(iso_bn::random& rng, TextGen&, Settings&);
 
     [[nodiscard]] bn::optional<SceneType> update() final;
 

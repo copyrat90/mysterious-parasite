@@ -11,6 +11,7 @@
 #include "bn_sprite_ptr.h"
 #include "bn_vector.h"
 
+#include "Settings.hpp"
 #include "typedefs.hpp"
 
 namespace mp
@@ -21,10 +22,23 @@ class TextGen;
 namespace mp::game
 {
 
+class Hud;
+
+class HudObserveSettings final : public SettingsObserver
+{
+public:
+    HudObserveSettings(Hud&, Settings&);
+
+    void onLangChange([[maybe_unused]] Settings::Language prevLang, Settings::Language newLang) override;
+
+private:
+    Hud& _hud;
+};
+
 class Hud final
 {
 public:
-    Hud(TextGen&);
+    Hud(TextGen&, Settings&);
 
     bool isVisible() const;
     void setVisible(bool);
@@ -36,6 +50,7 @@ private:
 
 private:
     TextGen& _textGen;
+    const Settings& _settings;
 
     s32 _currentBelly;
     s32 _maxBelly;
@@ -45,6 +60,10 @@ private:
     bn::vector<bn::sprite_ptr, 2> _bellyMiscSprites;
     bn::vector<bn::sprite_ptr, 1> _maxBellySprite;
     bn::sprite_ptr _bellyGaugeSprite;
+
+private:
+    friend class HudObserveSettings;
+    HudObserveSettings _settingsObserver;
 };
 
 } // namespace mp::game
