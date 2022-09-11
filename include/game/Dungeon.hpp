@@ -18,6 +18,8 @@
 #include "game/DungeonFloor.hpp"
 #include "game/Hud.hpp"
 #include "game/MiniMap.hpp"
+#include "game/item/Item.hpp"
+#include "game/item/ItemUse.hpp"
 #include "game/mob/Monster.hpp"
 #include "game/mob/Player.hpp"
 #include "scene/SceneType.hpp"
@@ -72,6 +74,7 @@ private:
     DungeonBg _bg;
     MiniMap _miniMap;
     Hud _hud;
+    item::ItemUse _itemUse;
 
     mob::Player _player;
     bn::forward_list<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;

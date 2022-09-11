@@ -12,7 +12,6 @@
 
 #include "constants.hpp"
 #include "game/BoardPos.hpp"
-#include "game/item/Item.hpp"
 #include "game/mob/MonsterAction.hpp"
 #include "game/mob/MonsterAnimation.hpp"
 #include "typedefs.hpp"
@@ -61,7 +60,6 @@ private:
 
     MonsterAnimation _animation;
     BoardPos _pos;
-    bn::vector<item::Item, consts::MOB_ITEM_MAX_COUNT> _items;
 };
 
 } // namespace mp::game::mob

@@ -13,6 +13,7 @@
 
 #include "constants.hpp"
 #include "game/MetaTileset.hpp"
+#include "game/item/ItemKind.hpp"
 #include "game/mob/MonsterAction.hpp"
 #include "game/mob/MonsterSpecies.hpp"
 
@@ -21,7 +22,7 @@ namespace mp::game
 
 Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen, Settings& settings)
     : _rng(rng), _settings(settings), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera),
-      _hud(textGen, settings), _player({0, 0}, _camera, _hud)
+      _hud(textGen, settings), _itemUse(_hud), _player({0, 0}, _camera, _hud)
 {
 #ifdef MP_DEBUG
     _testMapGen();
@@ -56,7 +57,7 @@ auto Dungeon::update() -> bn::optional<scene::SceneType>
 
 bool Dungeon::isTurnOngoing() const
 {
-    return _camMoveAction.has_value();
+    return _camMoveAction.has_value() || _itemUse.isOngoing();
 }
 
 #ifdef MP_DEBUG
@@ -68,6 +69,9 @@ void Dungeon::_testMapGen()
     _floor.generate(_rng);
     _bg.redrawAll(_floor, _player);
     _miniMap.redrawAll(_floor);
+
+    _items.clear();
+    _items.emplace_front(item::ItemKind::BANANA, _player.getBoardPos() + BoardPos{0, -2}, _player, _camera);
 }
 #endif
 
@@ -110,6 +114,29 @@ bool Dungeon::_progressTurn()
                     isPlayerAlive && _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
                 _miniMap.updateBgPos(_player);
                 _startBgScroll(inputDirection);
+
+                // the player can only pick up an item when they don't already have one.
+                if (!_itemUse.hasInventoryItem())
+                {
+                    auto it = _items.before_begin();
+                    auto cur = it;
+                    ++cur;
+                    while (cur != _items.end())
+                    {
+                        cur = it;
+                        ++cur;
+                        // check if the player stepped on the cur item, and pick it up.
+                        if (_player.getBoardPos() == cur->getBoardPos())
+                        {
+                            cur->moveSpriteToInventory();
+                            _itemUse.setInventoryItem(bn::move(*cur));
+
+                            _items.erase_after(it);
+                        }
+                        else
+                            ++it;
+                    }
+                }
             }
             // if not, just change the player's direction without moving.
             else

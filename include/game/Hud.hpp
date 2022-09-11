@@ -18,6 +18,10 @@ namespace mp
 {
 class TextGen;
 }
+namespace mp::game::item
+{
+struct ItemInfo;
+}
 
 namespace mp::game
 {
@@ -45,8 +49,12 @@ public:
 
     void setBelly(s32 currentBelly, s32 maxBelly);
 
+    void clearInventory();
+    void setInventory(const item::ItemInfo&);
+
 private:
     void _initGraphics();
+    void _setInventorySquareEmpty(bool isEmpty);
 
 private:
     TextGen& _textGen;
@@ -60,6 +68,12 @@ private:
     bn::vector<bn::sprite_ptr, 2> _bellyMiscSprites;
     bn::vector<bn::sprite_ptr, 1> _maxBellySprite;
     bn::sprite_ptr _bellyGaugeSprite;
+
+    bn::sprite_ptr _inventorySquareSprite;
+    bool _isInventoryEmpty = true;
+
+    bn::vector<bn::sprite_ptr, 4> _itemUseHintText;
+    bn::vector<bn::sprite_ptr, 4> _itemTossHintText;
 
 private:
     friend class HudObserveSettings;
