@@ -14,8 +14,6 @@
 
 namespace bn
 {
-template <typename T>
-class optional;
 class camera_ptr;
 } // namespace bn
 
@@ -36,7 +34,17 @@ class ItemInfo;
 class Item final
 {
 public:
+    /**
+     * @brief Constructor for item on the dungeon floor.
+     *
+     */
     Item(ItemKind, const BoardPos&, const mob::Player&, const bn::camera_ptr&);
+
+    /**
+     * @brief Constructor for item in the inventory.
+     *
+     */
+    Item(ItemKind, const mob::Player&);
 
     Item(const Item&) = delete;
     Item(Item&&);
@@ -52,7 +60,8 @@ public:
     auto getItemInfo() const -> const ItemInfo&;
 
 private:
-    void _initGraphics(const bn::camera_ptr&);
+    void _initGraphicsForInventoryItem();
+    void _initGraphicsForDungeonFloorItem(const bn::camera_ptr&);
     void _updateSpritePos();
 
 private:

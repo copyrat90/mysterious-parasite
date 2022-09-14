@@ -8,12 +8,15 @@
 
 #include "game/Dungeon.hpp"
 
+#include "bn_assert.h"
 #include "bn_keypad.h"
 #include "iso_bn_random.h"
 
 #include "constants.hpp"
 #include "game/MetaTileset.hpp"
+#include "game/item/ItemInfo.hpp"
 #include "game/item/ItemKind.hpp"
+#include "game/item/ability/ItemAbility.hpp"
 #include "game/mob/MonsterAction.hpp"
 #include "game/mob/MonsterSpecies.hpp"
 
@@ -145,6 +148,24 @@ bool Dungeon::_progressTurn()
                                 _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::CHANGE_DIRECTION));
             }
         }
+    }
+
+    // item use
+    if (bn::keypad::l_held() && bn::keypad::a_pressed())
+    {
+        if (_itemUse.getInventoryItem().has_value())
+        {
+            item::Item& item = _itemUse.getInventoryItem().value();
+            const item::ItemInfo& itemInfo = item.getItemInfo();
+            if (itemInfo.canBeUsed)
+                itemInfo.ability.use(_player, _itemUse, *this, _rng);
+        }
+    }
+
+    // item toss
+    if (bn::keypad::l_held() && bn::keypad::r_pressed())
+    {
+        BN_ERROR("TODO: Add item toss");
     }
 
     return isPlayerAlive;

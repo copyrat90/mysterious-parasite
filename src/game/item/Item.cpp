@@ -9,7 +9,6 @@
 #include "game/item/Item.hpp"
 
 #include "bn_camera_ptr.h"
-#include "bn_log.h"
 #include "bn_sprite_item.h"
 
 #include "constants.hpp"
@@ -21,9 +20,16 @@ namespace mp::game::item
 
 Item::Item(ItemKind itemKind, const BoardPos& boardPos, const mob::Player& player, const bn::camera_ptr& camera)
     : _info(ItemInfo::fromKind(itemKind)), _playerPos(player.getBoardPos()),
-      _sprite(_info.spriteItem.create_sprite(0, 0)), _pos(boardPos)
+      _sprite(_info.spriteItem.create_sprite(0, 0, _info.graphicsIndex)), _pos(boardPos)
 {
-    _initGraphics(camera);
+    _initGraphicsForDungeonFloorItem(camera);
+}
+
+Item::Item(ItemKind itemKind, const mob::Player& player)
+    : _info(ItemInfo::fromKind(itemKind)), _playerPos(player.getBoardPos()),
+      _sprite(_info.spriteItem.create_sprite(0, 0, _info.graphicsIndex)), _pos({0, 0})
+{
+    _initGraphicsForInventoryItem();
 }
 
 Item::Item(Item&& other)
@@ -38,9 +44,6 @@ bool Item::isInInventory() const
 
 void Item::moveSpriteToDungeonFloor(const BoardPos& boardPos, const bn::camera_ptr& camera)
 {
-    if (!isInInventory())
-        BN_LOG("Item '", _info.name[0], "' is already on the dungeon floor!");
-
     _pos = boardPos;
     _sprite.set_camera(camera);
     _sprite.set_bg_priority(consts::DUNGEON_BG_PRIORITY);
@@ -49,9 +52,6 @@ void Item::moveSpriteToDungeonFloor(const BoardPos& boardPos, const bn::camera_p
 
 void Item::moveSpriteToInventory()
 {
-    if (isInInventory())
-        BN_LOG("Item '", _info.name[0], "' is already in the inventory!");
-
     _sprite.remove_camera();
     _sprite.set_bg_priority(consts::UI_BG_PRIORITY);
     _updateSpritePos();
@@ -74,12 +74,16 @@ auto Item::getItemInfo() const -> const ItemInfo&
     return _info;
 }
 
-void Item::_initGraphics(const bn::camera_ptr& camera)
+void Item::_initGraphicsForInventoryItem()
 {
-    _sprite.set_camera(camera);
-    _sprite.set_bg_priority(consts::DUNGEON_BG_PRIORITY);
     _sprite.set_z_order(consts::ITEM_Z_ORDER);
-    _updateSpritePos();
+    moveSpriteToInventory();
+}
+
+void Item::_initGraphicsForDungeonFloorItem(const bn::camera_ptr& camera)
+{
+    _sprite.set_z_order(consts::ITEM_Z_ORDER);
+    moveSpriteToDungeonFloor(_pos, camera);
 }
 
 void Item::_updateSpritePos()
@@ -95,7 +99,6 @@ void Item::_updateSpritePos()
         auto spritePos = _sprite.camera()->position();
         spritePos += bn::fixed_point{(s32)diff.x * consts::DUNGEON_META_TILE_SIZE.width(),
                                      (s32)diff.y * consts::DUNGEON_META_TILE_SIZE.height()};
-        BN_LOG("spritePos: ", spritePos.x(), ", ", spritePos.y());
         _sprite.set_position(spritePos);
     }
 }
