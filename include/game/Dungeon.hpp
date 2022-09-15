@@ -53,6 +53,9 @@ private:
      */
     [[nodiscard]] bool _progressTurn();
 
+    [[nodiscard]] bool _progressPlayerTurn();
+    [[nodiscard]] bool _progressMonsterTurn();
+
     void _startBgScroll(Direction9 moveDir);
     bool _updateBgScroll();
 

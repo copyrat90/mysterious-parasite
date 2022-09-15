@@ -93,6 +93,15 @@ bool Dungeon::_progressTurn()
         _settings.setLang((_settings.getLang() == Settings::ENGLISH) ? Settings::KOREAN : Settings::ENGLISH);
 #endif
 
+    bool isPlayerAlive = _progressPlayerTurn();
+    if (isPlayerAlive)
+        isPlayerAlive = _progressMonsterTurn();
+
+    return isPlayerAlive;
+}
+
+bool Dungeon::_progressPlayerTurn()
+{
     bool isPlayerAlive = true;
 
     // player movement (with mini-map movement)
@@ -140,6 +149,8 @@ bool Dungeon::_progressTurn()
                             ++it;
                     }
                 }
+
+                return isPlayerAlive;
             }
             // if not, just change the player's direction without moving.
             else
@@ -150,25 +161,30 @@ bool Dungeon::_progressTurn()
         }
     }
 
-    // item use
-    if (bn::keypad::l_held() && bn::keypad::a_pressed())
+    if (bn::keypad::l_held())
     {
-        if (_itemUse.getInventoryItem().has_value())
+        // item use
+        if (bn::keypad::a_pressed())
         {
-            item::Item& item = _itemUse.getInventoryItem().value();
-            const item::ItemInfo& itemInfo = item.getItemInfo();
-            if (itemInfo.canBeUsed)
-                itemInfo.ability.use(_player, _itemUse, *this, _rng);
+            if (_itemUse.getInventoryItem().has_value())
+            {
+                item::Item& item = _itemUse.getInventoryItem().value();
+                const item::ItemInfo& itemInfo = item.getItemInfo();
+                if (itemInfo.canBeUsed)
+                    itemInfo.ability.use(_player, _itemUse, *this, _rng);
+            }
+        }
+
+        // item toss
+        if (bn::keypad::r_pressed())
+        {
+            BN_ERROR("TODO: Add item toss");
         }
     }
+}
 
-    // item toss
-    if (bn::keypad::l_held() && bn::keypad::r_pressed())
-    {
-        BN_ERROR("TODO: Add item toss");
-    }
-
-    return isPlayerAlive;
+bool Dungeon::_progressMonsterTurn()
+{
 }
 
 void Dungeon::_startBgScroll(Direction9 moveDir)
