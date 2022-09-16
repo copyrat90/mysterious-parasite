@@ -10,18 +10,32 @@
 
 #include "game/mob/Monster.hpp"
 
+#include "game/mob/PlayerBelly.hpp"
+
+namespace mp::game
+{
+class Hud;
+}
+
 namespace mp::game::mob
 {
 
 class Player final : public Monster
 {
 public:
-    Player(const BoardPos&, const bn::camera_ptr&);
+    Player(const BoardPos&, const bn::camera_ptr&, Hud&);
 
     /**
      * @brief Take a turn, with the player's order.
+     *
+     * @return `true` if player is alive, otherwise `false`.
      */
-    void actPlayer(const MonsterAction& action);
+    [[nodiscard]] bool actPlayer(const MonsterAction& action);
+
+    PlayerBelly& getBelly();
+
+private:
+    PlayerBelly _belly;
 };
 
 } // namespace mp::game::mob

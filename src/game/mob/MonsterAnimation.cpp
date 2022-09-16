@@ -52,6 +52,7 @@ void MonsterAnimation::_initGraphics(const bn::camera_ptr& camera)
 {
     setVisible(false);
     _sprite.set_bg_priority(consts::DUNGEON_BG_PRIORITY);
+    _sprite.set_z_order(consts::MOB_Z_ORDER);
     _sprite.set_camera(camera);
 }
 

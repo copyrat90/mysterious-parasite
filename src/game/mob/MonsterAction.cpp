@@ -46,4 +46,9 @@ BoardPos MonsterAction::getDirectionPos() const
     return convertDir9ToPos(_direction);
 }
 
+bool MonsterAction::isSpendTurn() const
+{
+    return _type >= Type::DO_NOTHING;
+}
+
 } // namespace mp::game::mob

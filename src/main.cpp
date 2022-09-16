@@ -34,6 +34,9 @@ int main()
     // TODO: 세이브로부터 seed 불러오기
     iso_bn::random rng;
 
+    // TODO: Load settings from SRAM save.
+    Settings settings(Settings::Language::ENGLISH);
+
     // TEST: Game scene
     nextScene = scene::SceneType::GAME;
 
@@ -56,7 +59,7 @@ int main()
                 {
                     using SceneType = scene::SceneType;
                 case SceneType::GAME:
-                    scene.reset(new scene::Game(rng, textGen));
+                    scene.reset(new scene::Game(rng, textGen, settings));
                     break;
                 default:
                     BN_ERROR("Unknown nextScene: ", (s32)*nextScene);

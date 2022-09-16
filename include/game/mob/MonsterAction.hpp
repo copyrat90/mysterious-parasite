@@ -20,9 +20,9 @@ class MonsterAction
 public:
     enum class Type
     {
-        // do not take a turn
+        // do not spend a turn
         CHANGE_DIRECTION = 0,
-        // take a turn
+        // spend a turn
         DO_NOTHING = 100,
         MOVE,
         ATTACK,
@@ -45,6 +45,8 @@ public:
     s32 getActionIdx() const;
     Direction9 getDirection() const;
     BoardPos getDirectionPos() const;
+
+    bool isSpendTurn() const;
 
 private:
     Direction9 _direction;
