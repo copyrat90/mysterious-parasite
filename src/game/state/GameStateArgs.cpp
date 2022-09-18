@@ -17,6 +17,11 @@ GameStateArgs::GameStateArgs(GameStateKind prevKind, GameStateKind nextKind) : _
 {
 }
 
+bool GameStateArgs::shouldChangeState() const
+{
+    return _prevKind != _nextKind;
+}
+
 auto GameStateArgs::getPrevStateKind() const -> GameStateKind
 {
     return _prevKind;
@@ -52,6 +57,28 @@ auto GameStateArgs::getDirection() const -> Direction9
 void GameStateArgs::setDirection(Direction9 direction)
 {
     _direction = direction;
+}
+
+auto GameStateArgs::getDeathReason() const -> DeathReason
+{
+    BN_ASSERT(_deathReason.has_value(), "Args::_deathReason is empty");
+    return *_deathReason;
+}
+
+void GameStateArgs::setDeathReason(DeathReason deathReason)
+{
+    _deathReason = deathReason;
+}
+
+auto GameStateArgs::getItemAction() const -> ItemAction
+{
+    BN_ASSERT(_itemAction.has_value(), "Args::_itemAction is empty");
+    return *_itemAction;
+}
+
+void GameStateArgs::setItemAction(ItemAction itemAction)
+{
+    _itemAction = itemAction;
 }
 
 } // namespace mp::game::state

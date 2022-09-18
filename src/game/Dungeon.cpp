@@ -9,32 +9,19 @@
 #include "game/Dungeon.hpp"
 
 #include "bn_assert.h"
-#include "bn_keypad.h"
-#include "iso_bn_random.h"
-
-#include "constants.hpp"
-#include "game/MetaTileset.hpp"
-#include "game/item/ItemInfo.hpp"
-#include "game/item/ItemKind.hpp"
-#include "game/item/ability/ItemAbility.hpp"
-#include "game/mob/MonsterAction.hpp"
-#include "game/mob/MonsterSpecies.hpp"
 
 namespace mp::game
 {
 
 Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen, Settings& settings)
     : _rng(rng), _settings(settings), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera),
-      _hud(textGen, settings), _itemUse(_hud), _player({0, 0}, _camera, _hud)
+      _hud(textGen, settings), _itemUse(_hud), _player({0, 0}, _camera, _hud), _idleState(*this), _pickPosState(*this),
+      _playerActState(*this), _movingState(*this), _enemyActState(*this), _gameOverState(*this)
 {
-#ifdef MP_DEBUG
-    _testMapGen();
-#endif
-
     _hud.setBelly(_player.getBelly().getCurrentBelly(), _player.getBelly().getMaxBelly());
 
     // TODO: Move mini-map to seperate screen
-    _miniMap.updateBgPos(_player);
+    // _miniMap.updateBgPos(_player);
     // _miniMap.setVisible(true);
 
     _hud.setVisible(true);
@@ -44,158 +31,40 @@ Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen, Settings& settings)
 
 auto Dungeon::update() -> bn::optional<scene::SceneType>
 {
-    bool isPlayerAlive = _progressTurn();
+    // bool isPlayerAlive = _progressTurn();
+    auto nextStateArgs = _updateState();
 
     _player.update(*this);
-    _miniMap.update();
+    for (auto& monster : _monsters)
+        monster.update(*this);
 
-    if (_camMoveAction)
-        _updateBgScroll();
+    // TODO: Move mini-map to seperate screen
+    // _miniMap.update();
+
     _bg.update(_floor, _player);
 
-    // TODO: Return the GameOver scene when player dies.
-    // Or, we do the game over animation first, and return it later.
+    if (nextStateArgs.has_value() && nextStateArgs->shouldChangeState())
+    {
+        _currentState->onExit();
+
+        switch (nextStateArgs->getNextStateKind())
+        {
+            using StKind = state::GameStateKind;
+        // special states
+        case StKind::RESTART_GAME:
+            return scene::SceneType::GAME;
+        // normal states
+        default:
+            _changeState(*nextStateArgs);
+        }
+
+        _currentState->onEnter(*nextStateArgs);
+    }
+
     return bn::nullopt;
 }
 
-bool Dungeon::isTurnOngoing() const
-{
-    return _camMoveAction.has_value() || _itemUse.isOngoing();
-}
-
-#ifdef MP_DEBUG
-void Dungeon::_testMapGen()
-{
-    _player.setBoardPos(DungeonFloor::COLUMNS / 2, DungeonFloor::ROWS / 2);
-    _miniMap.updateBgPos(_player);
-
-    _floor.generate(_rng);
-    _bg.redrawAll(_floor, _player);
-    _miniMap.redrawAll(_floor);
-
-    _items.clear();
-    _items.emplace_front(item::ItemKind::BANANA, _player.getBoardPos() + BoardPos{0, -2}, _player, _camera);
-}
-#endif
-
-bool Dungeon::_progressTurn()
-{
-    // Don't receive any input if the turn is ongoing.
-    if (isTurnOngoing())
-        return true;
-
-#ifdef MP_DEBUG
-    if (bn::keypad::select_held() && bn::keypad::l_pressed())
-        _testMapGen();
-    if (bn::keypad::select_held() && bn::keypad::r_pressed())
-        _miniMap.setVisible(!_miniMap.isVisible());
-    if (bn::keypad::select_held() && bn::keypad::right_pressed())
-        _settings.setLang((_settings.getLang() == Settings::ENGLISH) ? Settings::KOREAN : Settings::ENGLISH);
-#endif
-
-    bool isPlayerAlive = true;
-
-    // player movement (with mini-map movement)
-    if (bn::keypad::left_held() || bn::keypad::right_held() || bn::keypad::up_held() || bn::keypad::down_held())
-    {
-        using ActionType = mob::MonsterAction::Type;
-        using Dir9 = Direction9;
-
-        const Dir9 inputDirection = getDirectionFromKeyHold();
-
-        // ignore diagonal inputs, as diagonal movements are not allowed in this game.
-        if (inputDirection == Dir9::UP || inputDirection == Dir9::DOWN || inputDirection == Dir9::LEFT ||
-            inputDirection == Dir9::RIGHT)
-        {
-            const auto moveDiff = convertDir9ToPos(inputDirection);
-            const auto candidatePlayerPos = _player.getBoardPos() + moveDiff;
-
-            // if player can move to the input direction, move to there.
-            if (_canMoveTo(_player, candidatePlayerPos))
-            {
-                isPlayerAlive =
-                    isPlayerAlive && _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::MOVE));
-                _miniMap.updateBgPos(_player);
-                _startBgScroll(inputDirection);
-
-                // the player can only pick up an item when they don't already have one.
-                if (!_itemUse.hasInventoryItem())
-                {
-                    auto it = _items.before_begin();
-                    auto cur = it;
-                    ++cur;
-                    while (cur != _items.end())
-                    {
-                        cur = it;
-                        ++cur;
-                        // check if the player stepped on the cur item, and pick it up.
-                        if (_player.getBoardPos() == cur->getBoardPos())
-                        {
-                            cur->moveSpriteToInventory();
-                            _itemUse.setInventoryItem(bn::move(*cur));
-
-                            _items.erase_after(it);
-                        }
-                        else
-                            ++it;
-                    }
-                }
-            }
-            // if not, just change the player's direction without moving.
-            else
-            {
-                isPlayerAlive = isPlayerAlive &&
-                                _player.actPlayer(mob::MonsterAction(inputDirection, ActionType::CHANGE_DIRECTION));
-            }
-        }
-    }
-
-    // item use
-    if (bn::keypad::l_held() && bn::keypad::a_pressed())
-    {
-        if (_itemUse.getInventoryItem().has_value())
-        {
-            item::Item& item = _itemUse.getInventoryItem().value();
-            const item::ItemInfo& itemInfo = item.getItemInfo();
-            if (itemInfo.canBeUsed)
-                itemInfo.ability.use(_player, _itemUse, *this, _rng);
-        }
-    }
-
-    // item toss
-    if (bn::keypad::l_held() && bn::keypad::r_pressed())
-    {
-        BN_ERROR("TODO: Add item toss");
-    }
-
-    return isPlayerAlive;
-}
-
-void Dungeon::_startBgScroll(Direction9 moveDir)
-{
-    const auto moveDiff = convertDir9ToPos(moveDir);
-
-    bn::fixed_point destination = _camera.position();
-    destination += {moveDiff.x * MetaTile::SIZE_IN_PIXELS.width(), moveDiff.y * MetaTile::SIZE_IN_PIXELS.height()};
-
-    _bg.startBgScroll(moveDir);
-
-    _camMoveAction = bn::camera_move_to_action(_camera, consts::ACTOR_MOVE_FRAMES, destination);
-}
-
-bool Dungeon::_updateBgScroll()
-{
-    BN_ASSERT(_camMoveAction);
-    if (_camMoveAction->done())
-    {
-        _camMoveAction.reset();
-        return true;
-    }
-    _camMoveAction->update();
-    return false;
-}
-
-bool Dungeon::_canMoveTo(const mob::Monster& mob, const BoardPos& destination) const
+bool Dungeon::canMoveTo(const mob::Monster& mob, const BoardPos& destination) const
 {
     using FloorType = DungeonFloor::Type;
     if (_floor.getFloorTypeOf(destination) == FloorType::WALL)
@@ -212,6 +81,107 @@ bool Dungeon::_canMoveTo(const mob::Monster& mob, const BoardPos& destination) c
     // TODO: Add collide with _monsters
 
     return true;
+}
+
+auto Dungeon::_updateState() -> bn::optional<state::GameStateArgs>
+{
+    auto nextState1 = _currentState->handleInput();
+    auto nextState2 = _currentState->update();
+
+    BN_ASSERT(!(nextState1.has_value() && nextState1->shouldChangeState() && nextState2.has_value() &&
+                nextState2->shouldChangeState()),
+              "Both state::handleInput() and state::update() returned nextState");
+
+    if (nextState1.has_value() && nextState1->shouldChangeState())
+        return nextState1;
+    if (nextState2.has_value() && nextState2->shouldChangeState())
+        return nextState2;
+
+    return bn::nullopt;
+}
+
+void Dungeon::_changeState(const state::GameStateArgs& nextStateArgs)
+{
+    switch (nextStateArgs.getNextStateKind())
+    {
+        using StKind = state::GameStateKind;
+    case StKind::IDLE:
+        _currentState = &_idleState;
+        break;
+    case StKind::PICK_POS:
+        _currentState = &_pickPosState;
+        break;
+    case StKind::PLAYER_ACT:
+        _currentState = &_playerActState;
+        break;
+    case StKind::MOVING:
+        _currentState = &_movingState;
+        break;
+    case StKind::ENEMY_ACT:
+        _currentState = &_enemyActState;
+        break;
+    case StKind::GAME_OVER:
+        _currentState = &_gameOverState;
+        break;
+
+    default:
+        BN_ERROR("Invalid nextStateKind(", (int)nextStateArgs.getNextStateKind(), ")");
+    }
+}
+
+auto Dungeon::getRng() -> iso_bn::random&
+{
+    return _rng;
+}
+
+auto Dungeon::getSettings() -> Settings&
+{
+    return _settings;
+}
+
+auto Dungeon::getCamera() -> bn::camera_ptr&
+{
+    return _camera;
+}
+
+auto Dungeon::getFloor() -> DungeonFloor&
+{
+    return _floor;
+}
+
+auto Dungeon::getDungeonBg() -> DungeonBg&
+{
+    return _bg;
+}
+
+auto Dungeon::getHud() -> Hud&
+{
+    return _hud;
+}
+
+auto Dungeon::getItemUse() -> item::ItemUse&
+{
+    return _itemUse;
+}
+
+auto Dungeon::getPlayer() -> mob::Player&
+{
+    return _player;
+}
+
+auto Dungeon::getMonsters() -> decltype(_monsters)&
+{
+    return _monsters;
+}
+
+auto Dungeon::getItems() -> decltype(_items)&
+{
+    return _items;
+}
+
+auto Dungeon::getCurrentStateKind() const -> state::GameStateKind
+{
+    return _currentState->getStateKind();
 }
 
 } // namespace mp::game

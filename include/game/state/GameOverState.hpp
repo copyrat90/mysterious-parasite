@@ -18,6 +18,11 @@ class GameOverState final : public GameState
 public:
     GameOverState(Dungeon&);
 
+    GameStateKind getStateKind() const override
+    {
+        return GameStateKind::GAME_OVER;
+    }
+
     [[nodiscard]] auto handleInput() -> bn::optional<GameStateArgs> override;
     [[nodiscard]] auto update() -> bn::optional<GameStateArgs> override;
 

@@ -18,6 +18,11 @@ class PickPosState final : public GameState
 public:
     PickPosState(Dungeon&);
 
+    GameStateKind getStateKind() const override
+    {
+        return GameStateKind::PICK_POS;
+    }
+
     [[nodiscard]] auto handleInput() -> bn::optional<GameStateArgs> override;
     [[nodiscard]] auto update() -> bn::optional<GameStateArgs> override;
 

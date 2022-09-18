@@ -26,10 +26,8 @@ public:
     /**
      * @brief Progress a turn for the belly.
      * Decrease belly amount if `_bellyDecreaseTurns` has passed.
-     *
-     * @return `false` if player starves to death, otherwise `true`.
      */
-    [[nodiscard]] bool progressTurn();
+    void progressTurn();
 
     bool isStarveToDeath() const;
 

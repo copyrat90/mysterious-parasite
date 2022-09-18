@@ -8,20 +8,23 @@
 
 #pragma once
 
-#include "bn_camera_actions.h"
 #include "bn_camera_ptr.h"
 #include "bn_forward_list.h"
-#include "bn_optional.h"
 
 #include "constants.hpp"
 #include "game/DungeonBg.hpp"
 #include "game/DungeonFloor.hpp"
 #include "game/Hud.hpp"
-#include "game/MiniMap.hpp"
 #include "game/item/Item.hpp"
 #include "game/item/ItemUse.hpp"
 #include "game/mob/Monster.hpp"
 #include "game/mob/Player.hpp"
+#include "game/state/EnemyActState.hpp"
+#include "game/state/GameOverState.hpp"
+#include "game/state/IdleState.hpp"
+#include "game/state/MovingState.hpp"
+#include "game/state/PickPosState.hpp"
+#include "game/state/PlayerActState.hpp"
 #include "scene/SceneType.hpp"
 
 namespace iso_bn
@@ -43,42 +46,52 @@ public:
 
     [[nodiscard]] auto update() -> bn::optional<scene::SceneType>;
 
-    bool isTurnOngoing() const;
+    bool canMoveTo(const mob::Monster&, const BoardPos& destination) const;
 
 private:
-    /**
-     * @brief Receive user input, and progress a turn.
-     *
-     * @return `true` if player is still alive after the turn.
-     */
-    [[nodiscard]] bool _progressTurn();
-
-    void _startBgScroll(Direction9 moveDir);
-    bool _updateBgScroll();
-
-    bool _canMoveTo(const mob::Monster&, const BoardPos& destination) const;
-
-#ifdef MP_DEBUG
-private:
-    void _testMapGen();
-#endif
+    auto _updateState() -> bn::optional<state::GameStateArgs>;
+    void _changeState(const state::GameStateArgs& nextStateArgs);
 
 private:
     iso_bn::random& _rng;
     Settings& _settings;
 
     bn::camera_ptr _camera;
-    bn::optional<bn::camera_move_to_action> _camMoveAction;
 
     DungeonFloor _floor;
     DungeonBg _bg;
-    MiniMap _miniMap;
     Hud _hud;
     item::ItemUse _itemUse;
 
     mob::Player _player;
     bn::forward_list<mob::Monster, consts::DUNGEON_MOB_MAX_COUNT> _monsters;
     bn::forward_list<item::Item, consts::DUNGEON_ITEM_MAX_COUNT> _items;
+
+public:
+    auto getRng() -> iso_bn::random&;
+    auto getSettings() -> Settings&;
+
+    auto getCamera() -> bn::camera_ptr&;
+
+    auto getFloor() -> DungeonFloor&;
+    auto getDungeonBg() -> DungeonBg&;
+    auto getHud() -> Hud&;
+    auto getItemUse() -> item::ItemUse&;
+
+    auto getPlayer() -> mob::Player&;
+    auto getMonsters() -> decltype(_monsters)&;
+    auto getItems() -> decltype(_items)&;
+
+    auto getCurrentStateKind() const -> state::GameStateKind;
+
+private:
+    state::GameState* _currentState = &_idleState;
+    state::IdleState _idleState;
+    state::PickPosState _pickPosState;
+    state::PlayerActState _playerActState;
+    state::MovingState _movingState;
+    state::EnemyActState _enemyActState;
+    state::GameOverState _gameOverState;
 };
 
 } // namespace mp::game

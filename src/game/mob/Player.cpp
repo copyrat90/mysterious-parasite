@@ -25,13 +25,9 @@ Player::Player(const BoardPos& boardPos, const bn::camera_ptr& camera, Hud& hud)
 {
 }
 
-bool Player::actPlayer(const MonsterAction& action)
+void Player::actPlayer(const MonsterAction& action)
 {
     _act(action);
-    bool isAlive = true;
-    if (action.isSpendTurn())
-        isAlive = isAlive && _belly.progressTurn();
-    return isAlive;
 }
 
 PlayerBelly& Player::getBelly()

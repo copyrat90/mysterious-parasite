@@ -18,9 +18,19 @@ class PlayerActState final : public GameState
 public:
     PlayerActState(Dungeon&);
 
+    GameStateKind getStateKind() const override
+    {
+        return GameStateKind::PLAYER_ACT;
+    }
+
     [[nodiscard]] auto update() -> bn::optional<GameStateArgs> override;
 
     void onEnter(const GameStateArgs&) override;
+    void onExit() override;
+
+private:
+    void _startItemUse();
+    void _startItemToss();
 };
 
 } // namespace mp::game::state

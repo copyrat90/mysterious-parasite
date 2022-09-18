@@ -23,9 +23,11 @@ namespace mp::game::state
 class GameState
 {
 public:
-    virtual ~GameState() = 0;
+    virtual ~GameState() = default;
 
     GameState(Dungeon& dungeon) : _dungeon(dungeon){};
+
+    virtual GameStateKind getStateKind() const = 0;
 
 public:
     /**
@@ -61,7 +63,5 @@ public:
 protected:
     Dungeon& _dungeon;
 };
-
-inline GameState::~GameState() = default;
 
 } // namespace mp::game::state

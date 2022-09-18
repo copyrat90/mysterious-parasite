@@ -48,6 +48,8 @@ public:
     bool isVisible() const;
     void setVisible(bool);
 
+    const MonsterAnimation& getAnimation() const;
+
     const BoardPos& getBoardPos() const;
     void setBoardPos(u8 x, u8 y);
     void setBoardPos(const BoardPos&);

@@ -18,7 +18,28 @@ class IdleState final : public GameState
 public:
     IdleState(Dungeon&);
 
+    GameStateKind getStateKind() const override
+    {
+        return GameStateKind::IDLE;
+    }
+
     [[nodiscard]] auto handleInput() -> bn::optional<GameStateArgs> override;
+    [[nodiscard]] auto update() -> bn::optional<GameStateArgs> override;
+
+    void onEnter(const GameStateArgs&) override;
+
+private:
+    [[nodiscard]] auto _handleMovement() -> bn::optional<GameStateArgs>;
+    [[nodiscard]] auto _handleItemUse() -> bn::optional<GameStateArgs>;
+    [[nodiscard]] auto _handleItemToss() -> bn::optional<GameStateArgs>;
+
+private:
+    bn::optional<GameStateArgs::DeathReason> _gameOverReason;
+
+#ifdef MP_DEBUG
+private:
+    void _testMapGen();
+#endif
 };
 
 } // namespace mp::game::state

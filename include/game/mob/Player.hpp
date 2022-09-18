@@ -27,10 +27,8 @@ public:
 
     /**
      * @brief Take a turn, with the player's order.
-     *
-     * @return `true` if player is alive, otherwise `false`.
      */
-    [[nodiscard]] bool actPlayer(const MonsterAction& action);
+    void actPlayer(const MonsterAction& action);
 
     PlayerBelly& getBelly();
 

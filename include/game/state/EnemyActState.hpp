@@ -18,6 +18,11 @@ class EnemyActState final : public GameState
 public:
     EnemyActState(Dungeon&);
 
+    GameStateKind getStateKind() const override
+    {
+        return GameStateKind::ENEMY_ACT;
+    }
+
     [[nodiscard]] auto update() -> bn::optional<GameStateArgs> override;
 };
 

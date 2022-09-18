@@ -40,6 +40,11 @@ void Monster::setVisible(bool isVisible)
     _animation.setVisible(isVisible);
 }
 
+const MonsterAnimation& Monster::getAnimation() const
+{
+    return _animation;
+}
+
 const BoardPos& Monster::getBoardPos() const
 {
     return _pos;

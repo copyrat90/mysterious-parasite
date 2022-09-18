@@ -24,14 +24,13 @@ PlayerBelly::PlayerBelly(s32 currentBelly, s32 maxBelly, s32 bellyDecreaseTurns,
         BN_LOG("currentBelly(", currentBelly, ") was not in [0..maxBelly(", maxBelly, ")]. clamped to ", _currentBelly);
 }
 
-[[nodiscard]] bool PlayerBelly::progressTurn()
+void PlayerBelly::progressTurn()
 {
     if (++_bellyDecreaseCounter == _bellyDecreaseTurns)
     {
         resetBellyDecreaseCounter();
         addCurrentBelly(-1);
     }
-    return !isStarveToDeath();
 }
 
 bool PlayerBelly::isStarveToDeath() const
