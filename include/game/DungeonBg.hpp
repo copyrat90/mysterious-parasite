@@ -44,8 +44,8 @@ public:
     static constexpr s32 CELLS_COUNT = ROWS * COLUMNS;
 
 private:
-    const MetaTileset* _metaTileset;
-    const ShadowTileset& _shadowTileset;
+    const MetaTileset* _dunTileset;
+    const MetaTileset& _shadowTileset;
 
     alignas(4) bn::regular_bg_map_cell _dunCells[CELLS_COUNT];
     alignas(4) bn::regular_bg_map_cell _shadowCells[CELLS_COUNT];

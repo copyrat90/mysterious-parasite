@@ -21,7 +21,6 @@
 #include "constants.hpp"
 #include "game/DungeonFloor.hpp"
 #include "game/MetaTileset.hpp"
-#include "game/ShadowTileset.hpp"
 #include "game/mob/Monster.hpp"
 
 namespace mp::game
@@ -34,11 +33,11 @@ constexpr bn::fixed_point BG_SIZE_HALF = {DungeonBg::COLUMNS * 8 / 2, DungeonBg:
 
 // TODO: Pass MetaTilesetKind parameter, and init `_metaTileset` with it.
 DungeonBg::DungeonBg(const bn::camera_ptr& camera)
-    : _metaTileset(&MetaTileset::fromKind(MetaTilesetKind::PLACEHOLDER)),
-      _shadowTileset(ShadowTileset::get()), _dunCells{}, _shadowCells{},
+    : _dunTileset(&MetaTileset::fromKind(MetaTilesetKind::DUNGEON)),
+      _shadowTileset(MetaTileset::fromKind(MetaTilesetKind::SHADOW)), _dunCells{}, _shadowCells{},
       // dungeon bg init
       _dunMapItem(_dunCells[0], bn::size(DungeonBg::COLUMNS, DungeonBg::ROWS)),
-      _dunBgItem(_metaTileset->getBgItem().tiles_item(), _metaTileset->getBgItem().palette_item(), _dunMapItem),
+      _dunBgItem(_dunTileset->getBgItem().tiles_item(), _dunTileset->getBgItem().palette_item(), _dunMapItem),
       _dunBg(_dunBgItem.create_bg(0, 0)), _dunBgMap(_dunBg.map()),
       // shadow bg init
       _shadowMapItem(_shadowCells[0], bn::size(DungeonBg::COLUMNS, DungeonBg::ROWS)),
@@ -222,11 +221,13 @@ void DungeonBg::redrawAll(const DungeonFloor& dungeonFloor, const mob::Monster& 
             // get the right tile within the meta-tile, and assign it to current cell.
             const s32 bgTileX = (updatedTileCount % 2 == 0 ? 1 : 0);
             const s32 bgTileY = updatedTileCount / COLUMNS % 2;
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] =
+                _dunTileset->getDungeonCell(neighbors, discovers, bgTileX, bgTileY);
 
             // do the same thing with shadow area.
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
-            _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
+            _shadowCells[_shadowMapItem.cell_index(x, y)] =
+                _shadowTileset.getShadowCell(brightnesses, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (x == bottomRightCell.x())
@@ -270,10 +271,12 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
             const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (scrollPhase == 0 ? 1 : 0);
             const s32 bgTileY = updatedTileCount % 2;
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] =
+                _dunTileset->getDungeonCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
-            _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
+            _shadowCells[_shadowMapItem.cell_index(x, y)] =
+                _shadowTileset.getShadowCell(brightnesses, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (y == endCellY)
@@ -296,10 +299,12 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
             const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (scrollPhase == 0 ? 0 : 1);
             const s32 bgTileY = updatedTileCount % 2;
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] =
+                _dunTileset->getDungeonCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
-            _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
+            _shadowCells[_shadowMapItem.cell_index(x, y)] =
+                _shadowTileset.getShadowCell(brightnesses, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (y == endCellY)
@@ -321,10 +326,12 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
             const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (updatedTileCount + 1) % 2;
             const s32 bgTileY = (scrollPhase == 0 ? 1 : 0);
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] =
+                _dunTileset->getDungeonCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
-            _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
+            _shadowCells[_shadowMapItem.cell_index(x, y)] =
+                _shadowTileset.getShadowCell(brightnesses, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (x == endCellX)
@@ -346,10 +353,12 @@ void DungeonBg::_redrawScrolledCells(s32 scrollPhase, const DungeonFloor& dungeo
             const NeighborDiscover3x3 discovers = dungeonFloor.getNeighborDiscoverOf(metaTilePos);
             const s32 bgTileX = (updatedTileCount + 1) % 2;
             const s32 bgTileY = (scrollPhase == 0 ? 0 : 1);
-            _dunCells[_dunMapItem.cell_index(x, y)] = _metaTileset->getCell(neighbors, discovers, bgTileX, bgTileY);
+            _dunCells[_dunMapItem.cell_index(x, y)] =
+                _dunTileset->getDungeonCell(neighbors, discovers, bgTileX, bgTileY);
 
             const NeighborBrightness3x3 brightnesses = dungeonFloor.getNeighborBrightnessOf(metaTilePos);
-            _shadowCells[_shadowMapItem.cell_index(x, y)] = _shadowTileset.getCell(brightnesses, bgTileX, bgTileY);
+            _shadowCells[_shadowMapItem.cell_index(x, y)] =
+                _shadowTileset.getShadowCell(brightnesses, bgTileX, bgTileY);
 
             ++updatedTileCount;
             if (x == endCellX)

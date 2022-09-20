@@ -11,6 +11,8 @@
 #include "bn_log.h"
 
 #include "bn_regular_bg_items_bg_dungeon_tileset_placeholder.h"
+#include "bn_regular_bg_items_bg_shadow_tileset.h"
+#include "bn_regular_bg_items_bg_toss_hint_tileset.h"
 
 namespace mp::game
 {
@@ -21,7 +23,9 @@ namespace
 constexpr s32 TOTAL_TILESETS = (s32)MetaTilesetKind::TOTAL_TILESETS;
 
 constexpr MetaTileset _metaTilesets[TOTAL_TILESETS] = {
-    MetaTileset(bn::regular_bg_items::bg_dungeon_tileset_placeholder),
+    // This order should be same on the `enum class MetaTilesetKind`.
+    MetaTileset(MetaTilesetKind::DUNGEON, bn::regular_bg_items::bg_dungeon_tileset_placeholder),
+    MetaTileset(MetaTilesetKind::SHADOW, bn::regular_bg_items::bg_shadow_tileset),
 };
 
 } // namespace
@@ -41,16 +45,41 @@ auto MetaTile::getCell(s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cel
     return cells[bgTileY * COLUMNS + bgTileX];
 }
 
-auto MetaTileset::getCell(const DungeonFloor::Neighbor3x3& neighbors,
-                          const DungeonFloor::NeighborDiscover3x3& discovers, s32 bgTileX, s32 bgTileY) const
-    -> bn::regular_bg_map_cell
+auto MetaTileset::getCell(TileIndex metaTileIndex, s32 bgTileX, s32 bgTileY) const -> bn::regular_bg_map_cell
 {
-    TileIndex idx = _calcMetaTileIndex(neighbors, discovers);
-    return _metaTiles[idx].getCell(bgTileX, bgTileY);
+    return _metaTiles[metaTileIndex].getCell(bgTileX, bgTileY);
 }
 
-auto MetaTileset::_calcMetaTileIndex(const DungeonFloor::Neighbor3x3& neighbors,
-                                     const DungeonFloor::NeighborDiscover3x3& discovers) -> TileIndex
+auto MetaTileset::getDungeonCell(const DungeonFloor::Neighbor3x3& neighbors,
+                                 const DungeonFloor::NeighborDiscover3x3& discovers, s32 bgTileX, s32 bgTileY) const
+    -> bn::regular_bg_map_cell
+{
+    BN_ASSERT(getKind() == MetaTilesetKind::DUNGEON, "MetaTilesetKind(", (s32)_kind, ") is not DUNGEON");
+
+    TileIndex idx = _calcDungeonTileIndex(neighbors, discovers);
+    return getCell(idx, bgTileX, bgTileY);
+}
+
+auto MetaTileset::getShadowCell(const DungeonFloor::NeighborBrightness3x3& neighbors, s32 bgTileX, s32 bgTileY) const
+    -> bn::regular_bg_map_cell
+{
+    BN_ASSERT(getKind() == MetaTilesetKind::SHADOW, "MetaTilesetKind(", (s32)_kind, ") is not SHADOW");
+
+    TileIndex idx = _calcShadowTileIndex(neighbors);
+    return getCell(idx, bgTileX, bgTileY);
+}
+
+auto MetaTileset::_calcShadowTileIndex(const DungeonFloor::NeighborBrightness3x3& neighbors) -> TileIndex
+{
+    // TODO: Replace with actual shadow graphics, instead of 2 tile placeholder.
+    if (neighbors[1][1] > 0)
+        return 0; // light
+
+    return 1; // shadow
+}
+
+auto MetaTileset::_calcDungeonTileIndex(const DungeonFloor::Neighbor3x3& neighbors,
+                                        const DungeonFloor::NeighborDiscover3x3& discovers) -> TileIndex
 {
     using FloorType = DungeonFloor::Type;
 

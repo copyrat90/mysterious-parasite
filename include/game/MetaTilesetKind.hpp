@@ -19,7 +19,9 @@ namespace mp::game
  */
 enum class MetaTilesetKind : u8
 {
-    PLACEHOLDER,
+    // This order should be same for the `_metaTilesets[]` on the `MetaTileset.cpp`.
+    DUNGEON,
+    SHADOW,
     TOTAL_TILESETS
 };
 
