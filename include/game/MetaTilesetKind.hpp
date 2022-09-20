@@ -22,6 +22,7 @@ enum class MetaTilesetKind : u8
     // This order should be same for the `_metaTilesets[]` on the `MetaTileset.cpp`.
     DUNGEON,
     SHADOW,
+    TOSS_HINT,
     TOTAL_TILESETS
 };
 

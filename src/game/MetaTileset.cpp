@@ -26,6 +26,7 @@ constexpr MetaTileset _metaTilesets[TOTAL_TILESETS] = {
     // This order should be same on the `enum class MetaTilesetKind`.
     MetaTileset(MetaTilesetKind::DUNGEON, bn::regular_bg_items::bg_dungeon_tileset_placeholder),
     MetaTileset(MetaTilesetKind::SHADOW, bn::regular_bg_items::bg_shadow_tileset),
+    MetaTileset(MetaTilesetKind::TOSS_HINT, bn::regular_bg_items::bg_toss_hint_tileset),
 };
 
 } // namespace

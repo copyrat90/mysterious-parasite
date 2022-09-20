@@ -39,6 +39,7 @@ inline constexpr s32 UI_BG_PRIORITY = 0;
 
 inline constexpr s32 DUNGEON_BG_Z_ORDER_WALLS = 50;
 inline constexpr s32 DUNGEON_BG_Z_ORDER_SHADOWS = 40;
+inline constexpr s32 DUNGEON_BG_Z_ORDER_TOSS_HINT = 30;
 
 inline constexpr s32 MOB_Z_ORDER = 40;
 inline constexpr s32 ITEM_Z_ORDER = 50;

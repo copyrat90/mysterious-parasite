@@ -23,6 +23,10 @@ namespace mp::game::item
 {
 struct ItemInfo;
 }
+namespace mp::game::state
+{
+enum class GameStateKind;
+}
 
 namespace mp::game
 {
@@ -55,6 +59,8 @@ public:
     void redrawBellyText();
 
     void clearItemHintText();
+    void redrawItemHintText(bool isTossHint);
+    // Use current state to redraw text.
     void redrawItemHintText();
 
     void clearInventory();

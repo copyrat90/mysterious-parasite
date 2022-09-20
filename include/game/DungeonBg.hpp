@@ -31,7 +31,6 @@ namespace mp::game
 
 class DungeonFloor;
 class MetaTileset;
-class ShadowTileset;
 
 /**
  * @brief Manages dungeon background scrolling with tileset.

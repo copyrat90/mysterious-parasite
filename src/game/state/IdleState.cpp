@@ -63,6 +63,10 @@ auto IdleState::update() -> bn::optional<GameStateArgs>
 
 void IdleState::onEnter(const GameStateArgs& args)
 {
+    // Do not progress turn if item toss has been canceled.
+    if (args.getPrevStateKind() == state::GameStateKind::PICK_POS)
+        return;
+
     _gameOverReason = bn::nullopt;
 
     auto& playerBelly = _dungeon.getPlayer().getBelly();
@@ -95,7 +99,7 @@ auto IdleState::_handleMovement() -> bn::optional<GameStateArgs>
             if (_dungeon.canMoveTo(player, candidatePlayerPos))
             {
                 // change to `MOVING` state
-                GameStateArgs result(GameStateKind::IDLE, GameStateKind::MOVING);
+                GameStateArgs result(getStateKind(), GameStateKind::MOVING);
                 result.setDirection(inputDirection);
                 return result;
             }
@@ -122,7 +126,7 @@ auto IdleState::_handleItemUse() -> bn::optional<GameStateArgs>
             if (itemInfo.canBeUsed)
             {
                 // change to `PLAYER_ACT` state (item use)
-                GameStateArgs result(GameStateKind::IDLE, GameStateKind::PLAYER_ACT);
+                GameStateArgs result(getStateKind(), GameStateKind::PLAYER_ACT);
                 result.setItemAction(GameStateArgs::ItemAction::USE);
                 return result;
             }
@@ -135,8 +139,11 @@ auto IdleState::_handleItemToss() -> bn::optional<GameStateArgs>
 {
     if (bn::keypad::l_held() && bn::keypad::r_pressed())
     {
-        BN_ERROR("TODO: Add item toss");
+        const auto& itemUse = _dungeon.getItemUse();
+        if (itemUse.hasInventoryItem())
+            return GameStateArgs(getStateKind(), GameStateKind::PICK_POS);
     }
+
     return bn::nullopt;
 }
 

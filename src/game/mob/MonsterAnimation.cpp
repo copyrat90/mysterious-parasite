@@ -62,13 +62,14 @@ void MonsterAnimation::_updateAnimation(const Dungeon& dungeon)
     {
         // switch to idle animation if
         //   1. current animation is fully done
+        //   2. not in a moving state
         if (_animateAction.done())
         {
             if (!_isFullyDone())
                 --_extraWaitUpdate;
             else
             {
-                if (dungeon.getCurrentStateKind() == state::GameStateKind::IDLE)
+                if (dungeon.getCurrentStateKind() != state::GameStateKind::MOVING)
                     _startAnimation(Type::IDLE, _direction);
             }
         }

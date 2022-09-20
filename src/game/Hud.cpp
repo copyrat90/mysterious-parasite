@@ -194,7 +194,7 @@ void Hud::redrawBellyText()
         sprite.set_visible(isVisible());
 }
 
-void Hud::redrawItemHintText()
+void Hud::redrawItemHintText(bool isTossHint)
 {
     auto& textGen = _textGen.get(TextGen::FontKind::GALMURI_7);
     textGen.set_bg_priority(consts::UI_BG_PRIORITY);
@@ -202,7 +202,7 @@ void Hud::redrawItemHintText()
 
     clearItemHintText();
 
-    if (_dungeon.getCurrentStateKind() == state::GameStateKind::PICK_POS)
+    if (isTossHint)
     {
         textGen.generate(ITEM_HINT_POS_0, texts::ITEM_PICK_TOSS_POS_HINT[_settings.getLang()], _itemHintTexts[0]);
         textGen.generate(ITEM_HINT_POS_1, texts::A_CONFIRM[_settings.getLang()], _itemHintTexts[1]);
@@ -230,6 +230,11 @@ void Hud::redrawItemHintText()
             sprite.set_visible(isVisible());
 
     textGen.set_palette_item(bn::sprite_palette_items::pal_font_white);
+}
+
+void Hud::redrawItemHintText()
+{
+    redrawItemHintText(_dungeon.getCurrentStateKind() == state::GameStateKind::PICK_POS);
 }
 
 void Hud::clearInventory()

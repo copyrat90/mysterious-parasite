@@ -35,6 +35,9 @@ public:
     static auto fromKind(ItemKind) -> const ItemInfo&;
 
 public:
+    static constexpr s32 MAX_TOSS_DISTANCE = 4;
+
+public:
     ItemKind kind;
     const bool canBeUsed;
     const s32 tossDistance;
@@ -51,7 +54,8 @@ public:
         : kind(kind_), canBeUsed(canBeUsed_), tossDistance(tossDistance_), spriteItem(spriteItem_),
           graphicsIndex(graphicsIndex_), ability(ability_), name(name_), description(description_)
     {
-        BN_ASSERT(tossDistance <= 4, "tossDistance(", tossDistance, ") should be less than 5 to be seen on screen");
+        BN_ASSERT(tossDistance <= 4, "tossDistance(", tossDistance, ") should be less than ", MAX_TOSS_DISTANCE + 1,
+                  " to be seen on screen");
     }
 };
 
