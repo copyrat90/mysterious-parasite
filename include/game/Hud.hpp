@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "bn_array.h"
 #include "bn_sprite_ptr.h"
 #include "bn_vector.h"
 
@@ -27,6 +28,7 @@ namespace mp::game
 {
 
 class Hud;
+class Dungeon;
 
 class HudObserveSettings final : public SettingsObserver
 {
@@ -42,12 +44,18 @@ private:
 class Hud final
 {
 public:
-    Hud(TextGen&, Settings&);
+    Hud(const Dungeon&, TextGen&, Settings&);
 
     bool isVisible() const;
     void setVisible(bool);
 
     void setBelly(s32 currentBelly, s32 maxBelly);
+
+    void clearBellyText();
+    void redrawBellyText();
+
+    void clearItemHintText();
+    void redrawItemHintText();
 
     void clearInventory();
     void setInventory(const item::ItemInfo&);
@@ -57,6 +65,7 @@ private:
     void _setInventorySquareEmpty(bool isEmpty);
 
 private:
+    const Dungeon& _dungeon;
     TextGen& _textGen;
     const Settings& _settings;
 
@@ -72,8 +81,7 @@ private:
     bn::sprite_ptr _inventorySquareSprite;
     bool _isInventoryEmpty = true;
 
-    bn::vector<bn::sprite_ptr, 4> _itemUseHintText;
-    bn::vector<bn::sprite_ptr, 4> _itemTossHintText;
+    bn::array<bn::vector<bn::sprite_ptr, 4>, 3> _itemHintTexts;
 
 private:
     friend class HudObserveSettings;

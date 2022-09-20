@@ -15,8 +15,8 @@ namespace mp::game
 
 Dungeon::Dungeon(iso_bn::random& rng, TextGen& textGen, Settings& settings)
     : _rng(rng), _settings(settings), _camera(bn::camera_ptr::create(consts::INIT_CAM_POS)), _bg(_camera),
-      _hud(textGen, settings), _itemUse(_hud), _player({0, 0}, _camera, _hud), _idleState(*this), _pickPosState(*this),
-      _playerActState(*this), _movingState(*this), _enemyActState(*this), _gameOverState(*this)
+      _hud(*this, textGen, settings), _itemUse(_hud), _player({0, 0}, _camera, _hud), _idleState(*this),
+      _pickPosState(*this), _playerActState(*this), _movingState(*this), _enemyActState(*this), _gameOverState(*this)
 {
     _hud.setBelly(_player.getBelly().getCurrentBelly(), _player.getBelly().getMaxBelly());
 
@@ -157,6 +157,11 @@ auto Dungeon::getDungeonBg() -> DungeonBg&
 auto Dungeon::getHud() -> Hud&
 {
     return _hud;
+}
+
+auto Dungeon::getItemUse() const -> const item::ItemUse&
+{
+    return _itemUse;
 }
 
 auto Dungeon::getItemUse() -> item::ItemUse&

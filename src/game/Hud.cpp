@@ -16,6 +16,7 @@
 
 #include "TextGen.hpp"
 #include "constants.hpp"
+#include "game/Dungeon.hpp"
 #include "game/item/ItemInfo.hpp"
 #include "game/mob/PlayerBelly.hpp"
 #include "texts.hpp"
@@ -56,8 +57,9 @@ constexpr bn::fixed_point BELLY_GAUGE_POS = {
     0 - bn::display::height() / 2 + bn::sprite_items::spr_belly_gauge.shape_size().height() / 2,
 };
 
-constexpr bn::fixed_point ITEM_HINT_TOP_POS = consts::INVENTORY_POS + bn::fixed_point{18, -4};
-constexpr bn::fixed_point ITEM_HINT_BOTTOM_POS = consts::INVENTORY_POS + bn::fixed_point{18, 8};
+constexpr bn::fixed_point ITEM_HINT_POS_0 = consts::INVENTORY_POS + bn::fixed_point{-13, -18};
+constexpr bn::fixed_point ITEM_HINT_POS_1 = consts::INVENTORY_POS + bn::fixed_point{18, -4};
+constexpr bn::fixed_point ITEM_HINT_POS_2 = consts::INVENTORY_POS + bn::fixed_point{18, 8};
 
 constexpr s32 BELLY_FALLBACK_VALUE = 100;
 
@@ -69,36 +71,8 @@ HudObserveSettings::HudObserveSettings(Hud& hud, Settings& settings) : SettingsO
 
 void HudObserveSettings::onLangChange([[maybe_unused]] Settings::Language prevLang, Settings::Language newLang)
 {
-    // belly text update
-    _hud._bellyMiscSprites.clear();
-
-    auto& textGen = _hud._textGen.get(TextGen::FontKind::GALMURI_7);
-    textGen.set_bg_priority(consts::UI_BG_PRIORITY);
-    textGen.set_alignment(bn::sprite_text_generator::alignment_type::RIGHT);
-    textGen.generate(BELLY_SLASH_POS, "/", _hud._bellyMiscSprites);
-    textGen.generate(BELLY_TEXT_POS, texts::BELLY[newLang], _hud._bellyMiscSprites);
-    for (auto& sprite : _hud._bellyMiscSprites)
-        sprite.set_visible(_hud.isVisible());
-
-    textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
-
-    // use & toss hint text update
-    const auto usePalette = _hud._itemUseHintText[0].palette();
-    const auto tossPalette = _hud._itemTossHintText[0].palette();
-    _hud._itemUseHintText.clear();
-    _hud._itemTossHintText.clear();
-    textGen.generate(ITEM_HINT_TOP_POS, texts::ITEM_USE_HINT[newLang], _hud._itemUseHintText);
-    textGen.generate(ITEM_HINT_BOTTOM_POS, texts::ITEM_TOSS_HINT[newLang], _hud._itemTossHintText);
-    for (auto& sprite : _hud._itemUseHintText)
-    {
-        sprite.set_palette(usePalette);
-        sprite.set_visible(_hud.isVisible());
-    }
-    for (auto& sprite : _hud._itemTossHintText)
-    {
-        sprite.set_palette(tossPalette);
-        sprite.set_visible(_hud.isVisible());
-    }
+    _hud.redrawBellyText();
+    _hud.redrawItemHintText();
 }
 
 static s32 _getBellyGraphicsIndexFromBelly(s32 currentBelly, s32 maxBelly)
@@ -106,8 +80,9 @@ static s32 _getBellyGraphicsIndexFromBelly(s32 currentBelly, s32 maxBelly)
     return (bn::fixed(currentBelly) / maxBelly * 32).round_integer();
 }
 
-Hud::Hud(TextGen& textGen, Settings& settings)
-    : _textGen(textGen), _settings(settings), _currentBelly(BELLY_FALLBACK_VALUE), _maxBelly(BELLY_FALLBACK_VALUE),
+Hud::Hud(const Dungeon& dungeon, TextGen& textGen, Settings& settings)
+    : _dungeon(dungeon), _textGen(textGen), _settings(settings), _currentBelly(BELLY_FALLBACK_VALUE),
+      _maxBelly(BELLY_FALLBACK_VALUE),
       _bellyGaugeGraphicsIndex(_getBellyGraphicsIndexFromBelly(_currentBelly, _maxBelly)),
       _bellyGaugeSprite(bn::sprite_items::spr_belly_gauge.create_sprite(BELLY_GAUGE_POS, _bellyGaugeGraphicsIndex)),
       _settingsObserver(*this, settings),
@@ -123,56 +98,24 @@ bool Hud::isVisible() const
 
 void Hud::setVisible(bool newVisible)
 {
-    if (newVisible != isVisible())
-    {
-        if (newVisible)
-        {
-            auto& textGen = _textGen.get(TextGen::FontKind::GALMURI_7);
-            textGen.set_bg_priority(consts::UI_BG_PRIORITY);
-            textGen.set_alignment(bn::sprite_text_generator::alignment_type::RIGHT);
-            textGen.generate(CURRENT_BELLY_POS, bn::to_string<4>(_currentBelly), _currentBellySprite);
-            textGen.generate(MAX_BELLY_POS, bn::to_string<4>(_maxBelly), _maxBellySprite);
-
-            if (_bellyMiscSprites.empty())
-            {
-                textGen.generate(BELLY_SLASH_POS, "/", _bellyMiscSprites);
-                textGen.generate(BELLY_TEXT_POS, texts::BELLY[_settings.getLang()], _bellyMiscSprites);
-            }
-            else
-            {
-                for (auto& sprite : _bellyMiscSprites)
-                    sprite.set_visible(newVisible);
-            }
-
-            textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
-            textGen.set_palette_item(bn::sprite_palette_items::pal_font_gray);
-
-            if (_itemUseHintText.empty())
-            {
-                textGen.generate(ITEM_HINT_TOP_POS, texts::ITEM_USE_HINT[_settings.getLang()], _itemUseHintText);
-                textGen.generate(ITEM_HINT_BOTTOM_POS, texts::ITEM_TOSS_HINT[_settings.getLang()], _itemTossHintText);
-            }
-            else
-            {
-                for (auto& sprite : _itemUseHintText)
-                    sprite.set_visible(newVisible);
-                for (auto& sprite : _itemTossHintText)
-                    sprite.set_visible(newVisible);
-            }
-
-            textGen.set_palette_item(bn::sprite_palette_items::pal_font_white);
-        }
-        else
-        {
-            _currentBellySprite.clear();
-            _maxBellySprite.clear();
-            for (auto& sprite : _bellyMiscSprites)
-                sprite.set_visible(newVisible);
-        }
-    }
+    const bool prevVisible = isVisible();
 
     _bellyGaugeSprite.set_visible(newVisible);
     _inventorySquareSprite.set_visible(newVisible);
+
+    if (newVisible != prevVisible)
+    {
+        if (newVisible)
+        {
+            redrawBellyText();
+            redrawItemHintText();
+        }
+        else
+        {
+            clearBellyText();
+            clearItemHintText();
+        }
+    }
 }
 
 void Hud::setBelly(s32 currentBelly, s32 maxBelly)
@@ -218,14 +161,85 @@ void Hud::setBelly(s32 currentBelly, s32 maxBelly)
     _bellyGaugeGraphicsIndex = newGraphicsIndex;
 }
 
+void Hud::clearBellyText()
+{
+    _currentBellySprite.clear();
+    _bellyMiscSprites.clear();
+    _maxBellySprite.clear();
+}
+
+void Hud::clearItemHintText()
+{
+    for (auto& text : _itemHintTexts)
+        text.clear();
+}
+
+void Hud::redrawBellyText()
+{
+    auto& textGen = _textGen.get(TextGen::FontKind::GALMURI_7);
+    textGen.set_bg_priority(consts::UI_BG_PRIORITY);
+    textGen.set_alignment(bn::sprite_text_generator::alignment_type::RIGHT);
+
+    clearBellyText();
+    textGen.generate(CURRENT_BELLY_POS, bn::to_string<4>(_currentBelly), _currentBellySprite);
+    textGen.generate(MAX_BELLY_POS, bn::to_string<4>(_maxBelly), _maxBellySprite);
+    textGen.generate(BELLY_SLASH_POS, "/", _bellyMiscSprites);
+    textGen.generate(BELLY_TEXT_POS, texts::BELLY[_settings.getLang()], _bellyMiscSprites);
+
+    for (auto& sprite : _currentBellySprite)
+        sprite.set_visible(isVisible());
+    for (auto& sprite : _maxBellySprite)
+        sprite.set_visible(isVisible());
+    for (auto& sprite : _bellyMiscSprites)
+        sprite.set_visible(isVisible());
+}
+
+void Hud::redrawItemHintText()
+{
+    auto& textGen = _textGen.get(TextGen::FontKind::GALMURI_7);
+    textGen.set_bg_priority(consts::UI_BG_PRIORITY);
+    textGen.set_alignment(bn::sprite_text_generator::alignment_type::LEFT);
+
+    clearItemHintText();
+
+    if (_dungeon.getCurrentStateKind() == state::GameStateKind::PICK_POS)
+    {
+        textGen.generate(ITEM_HINT_POS_0, texts::ITEM_PICK_TOSS_POS_HINT[_settings.getLang()], _itemHintTexts[0]);
+        textGen.generate(ITEM_HINT_POS_1, texts::A_CONFIRM[_settings.getLang()], _itemHintTexts[1]);
+        textGen.generate(ITEM_HINT_POS_2, texts::B_CANCEL[_settings.getLang()], _itemHintTexts[2]);
+    }
+    else
+    {
+        const auto& item = _dungeon.getItemUse().getInventoryItem();
+        const bool hint1ColorGray = !item.has_value() || !item->getItemInfo().canBeUsed;
+        const bool hint2ColorGray = !item.has_value();
+
+        if (hint1ColorGray)
+            textGen.set_palette_item(bn::sprite_palette_items::pal_font_gray);
+        textGen.generate(ITEM_HINT_POS_1, texts::ITEM_USE_HINT[_settings.getLang()], _itemHintTexts[1]);
+        textGen.set_palette_item(bn::sprite_palette_items::pal_font_white);
+
+        if (hint2ColorGray)
+            textGen.set_palette_item(bn::sprite_palette_items::pal_font_gray);
+        textGen.generate(ITEM_HINT_POS_2, texts::ITEM_TOSS_HINT[_settings.getLang()], _itemHintTexts[2]);
+        textGen.set_palette_item(bn::sprite_palette_items::pal_font_white);
+    }
+
+    for (auto& text : _itemHintTexts)
+        for (auto& sprite : text)
+            sprite.set_visible(isVisible());
+
+    textGen.set_palette_item(bn::sprite_palette_items::pal_font_white);
+}
+
 void Hud::clearInventory()
 {
     _setInventorySquareEmpty(true);
 
     const auto& disabledPalette = bn::sprite_palette_items::pal_font_gray;
-    for (auto& sprite : _itemUseHintText)
+    for (auto& sprite : _itemHintTexts[1])
         sprite.set_palette(disabledPalette);
-    for (auto& sprite : _itemTossHintText)
+    for (auto& sprite : _itemHintTexts[2])
         sprite.set_palette(disabledPalette);
 }
 
@@ -236,9 +250,9 @@ void Hud::setInventory(const item::ItemInfo& itemInfo)
     const auto& enabledPalette = bn::sprite_palette_items::pal_font_white;
     const auto& useHintTextPalette =
         itemInfo.canBeUsed ? bn::sprite_palette_items::pal_font_white : bn::sprite_palette_items::pal_font_gray;
-    for (auto& sprite : _itemUseHintText)
+    for (auto& sprite : _itemHintTexts[1])
         sprite.set_palette(useHintTextPalette);
-    for (auto& sprite : _itemTossHintText)
+    for (auto& sprite : _itemHintTexts[2])
         sprite.set_palette(enabledPalette);
 }
 

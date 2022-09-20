@@ -76,6 +76,7 @@ public:
     auto getFloor() -> DungeonFloor&;
     auto getDungeonBg() -> DungeonBg&;
     auto getHud() -> Hud&;
+    auto getItemUse() const -> const item::ItemUse&;
     auto getItemUse() -> item::ItemUse&;
 
     auto getPlayer() -> mob::Player&;

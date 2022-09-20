@@ -32,6 +32,10 @@ inline constexpr LangTexts BELLY = {"Belly", "만복도"};
 inline constexpr LangTexts ITEM_USE_HINT = {"L+A: Use", "L+A: 사용"};
 inline constexpr LangTexts ITEM_TOSS_HINT = {"L+R: Throw", "L+R: 던지기"};
 
+inline constexpr LangTexts ITEM_PICK_TOSS_POS_HINT = {"Choose where to throw.", "던질 위치를 선택하세요."};
+inline constexpr LangTexts A_CONFIRM = {"A: Confirm", "A: 결정"};
+inline constexpr LangTexts B_CANCEL = {"B: Cancel", "B: 취소"};
+
 // for use in ItemInfo class.
 inline constexpr bn::array<bn::pair<LangTexts, LangTexts>, game::item::TOTAL_ITEMS> ITEM_NAME_AND_DESC = {
     bn::pair{
