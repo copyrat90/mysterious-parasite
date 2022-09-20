@@ -27,10 +27,7 @@ PlayerBelly::PlayerBelly(s32 currentBelly, s32 maxBelly, s32 bellyDecreaseTurns,
 void PlayerBelly::progressTurn()
 {
     if (++_bellyDecreaseCounter == _bellyDecreaseTurns)
-    {
-        resetBellyDecreaseCounter();
         addCurrentBelly(-1);
-    }
 }
 
 bool PlayerBelly::isStarveToDeath() const
@@ -71,6 +68,8 @@ void PlayerBelly::addCurrentBelly(s32 amount)
     _currentBelly += amount;
     _clampBelly();
     _updateHud();
+
+    resetBellyDecreaseCounter();
 }
 
 void PlayerBelly::setCurrentBelly(s32 belly)
